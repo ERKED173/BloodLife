@@ -328,11 +328,10 @@ public class Space implements Screen, GestureListener {
     private void mapInit () {
         map = new AdvSprite(game.atlas.createSprite("map"), 0f, 0f, 0.3f * game.width, 0.3f * game.width);
         point = new AdvSprite(game.atlas.createSprite("map_point"), 0f, 0f, 0.02f * game.width, 0.02f * game.width);
-        point.setColor(Color.LIGHT_GRAY);
         lymphPoints = new LinkedList<AdvSprite>();
         virusPoints = new LinkedList<AdvSprite>();
 
-        virusSign = new AdvSprite(game.atlas.createSprite("virus", 6), 0f, 0f, 0.1f*game.width, 0.1f*game.width);
+        virusSign = new AdvSprite(game.atlas.createSprite("virus", 11), 0f, 0f, 0.1f*game.width, 0.1f*game.width);
         redCellSign = new AdvSprite(game.atlas.createSprite("red"), 0f, 0f, 0.1f*game.width, 0.1f*game.width);
 
         stage.addActor(virusSign);
@@ -528,10 +527,10 @@ public class Space implements Screen, GestureListener {
         spawnVirus(hp, speed, new Vector2(x, y));
     }
     private void spawnVirus(int hp, float speed, Vector2 vec) {
-        int virusType = rand.nextInt(7) + 1;
+        int virusType = rand.nextInt(12) + 1;
         AdvSprite virusEnt;
         Entity virusSub;
-        if (virusType > 4) {
+        if (virusType > 9) {
             virusEnt = new AdvSprite(game.atlas.createSprite("virus", virusType), 0, 0, 1f, 1f);
             virusSub = new Entity(virusEnt, world, 0f, 5f, 0.2f, "virus_advanced");
         } else {
@@ -621,10 +620,6 @@ public class Space implements Screen, GestureListener {
     private void lifeCycle (int level) {
 
         switch (level) {
-            case -2: {
-                idleLevelRound();
-                break;
-            }
             case -1: {
                 idleLevelTest();
                 break;
@@ -751,13 +746,6 @@ public class Space implements Screen, GestureListener {
         if (rand.nextInt(100) == 0) spawnVirus(75, rand.nextFloat() / 2f + 0.3f, getSpawnLocation());
         if (rand.nextInt(50) == 0) spawnRedCell(150, getSpawnLocation());
         if (rand.nextInt(300) == 0) spawnLymph(125, getSpawnLocation());
-        if (oldVirusScore < virusScore) {
-            spawnVirus(50, rand.nextFloat() / 3f + 0.25f, newVirusX, newVirusY);
-            oldVirusScore = virusScore;
-        }
-    }
-    private void idleLevelRound() {
-        isTrainOver = true;
         if (oldVirusScore < virusScore) {
             spawnVirus(50, rand.nextFloat() / 3f + 0.25f, newVirusX, newVirusY);
             oldVirusScore = virusScore;
