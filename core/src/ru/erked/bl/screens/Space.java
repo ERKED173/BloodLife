@@ -11,7 +11,6 @@ import com.badlogic.gdx.input.GestureDetector;
 import com.badlogic.gdx.math.RandomXS128;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Box2D;
-import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.physics.box2d.Contact;
 import com.badlogic.gdx.physics.box2d.ContactImpulse;
 import com.badlogic.gdx.physics.box2d.ContactListener;
@@ -84,7 +83,7 @@ public class Space implements Screen, GestureListener {
     private BLButton exit;
     private boolean toMenu = false;
 
-    public Space(MainBL game, int level) {
+    public Space (MainBL game, int level) {
         this.game = game;
         Space.level = level;
         stage = new Stage();
@@ -267,7 +266,7 @@ public class Space implements Screen, GestureListener {
                             if (contact.getFixtureB().getBody().equals(entityJ.getBody())) {
                                 if (entityI.getName()!= null && entityJ.getName() != null) {
                                     if (virusNumber > 0) {
-                                        if ((entityI.getName().equals("virus") || entityI.getName().equals("virus_advanced")) && entityJ.getName().equals("red_cell")) {
+                                        if ((entityI.getName().equals("virus") || entityI.getName().equals("virus_advanced") || entityI.getName().equals("virus_super_advanced")) && entityJ.getName().equals("red_cell")) {
                                             if (entityI.getLifeTime() > 0 && entityJ.getLifeTime() > 0) {
                                                 virusScore++;
                                                 newVirusX = entityJ.getPosition().x;
@@ -275,7 +274,7 @@ public class Space implements Screen, GestureListener {
                                                 entityJ.decreaseLT(10000);
                                                 //System.out.println("Tupoy virus ubivaet nashih!");
                                             }
-                                        } else if (entityI.getName().equals("red_cell") && (entityJ.getName().equals("virus") || entityJ.getName().equals("virus_advanced"))) {
+                                        } else if (entityI.getName().equals("red_cell") && (entityJ.getName().equals("virus") || entityJ.getName().equals("virus_advanced") || entityJ.getName().equals("virus_super_advanced"))) {
                                             if (entityI.getLifeTime() > 0 && entityJ.getLifeTime() > 0) {
                                                 virusScore++;
                                                 newVirusX = entityJ.getPosition().x;
@@ -286,13 +285,13 @@ public class Space implements Screen, GestureListener {
                                         }
                                         //
                                         if (lymphNumber > 0) {
-                                            if ((entityI.getName().equals("virus") || entityI.getName().equals("virus_advanced")) && entityJ.getName().equals("lymphocyte")) {
+                                            if ((entityI.getName().equals("virus") || entityI.getName().equals("virus_advanced") || entityI.getName().equals("virus_super_advanced")) && entityJ.getName().equals("lymphocyte")) {
                                                 if (entityI.getLifeTime() > 0 && entityJ.getLifeTime() > 0) {
                                                     playerScore++;
                                                     entityI.decreaseLT(10000);
                                                     //System.out.println("Moy drug ubil virus!");
                                                 }
-                                            } else if (entityI.getName().equals("lymphocyte") && (entityJ.getName().equals("virus") || entityJ.getName().equals("virus_advanced"))) {
+                                            } else if (entityI.getName().equals("lymphocyte") && (entityJ.getName().equals("virus") || entityJ.getName().equals("virus_advanced") || entityJ.getName().equals("virus_super_advanced"))) {
                                                 if (entityI.getLifeTime() > 0 && entityJ.getLifeTime() > 0) {
                                                     playerScore++;
                                                     entityJ.decreaseLT(10000);
@@ -301,14 +300,14 @@ public class Space implements Screen, GestureListener {
                                             }
                                         }
                                         //
-                                        if (entityI.getName().equals("player") && (entityJ.getName().equals("virus") || entityJ.getName().equals("virus_advanced"))) {
+                                        if (entityI.getName().equals("player") && (entityJ.getName().equals("virus") || entityJ.getName().equals("virus_advanced") || entityJ.getName().equals("virus_super_advanced"))) {
                                             if (entityJ.getLifeTime() > 0) {
                                                 playerScore++;
                                                 entityJ.decreaseLT(10000);
                                                 game.sounds.death.play(1f, 1.25f - 0.5f * rand.nextFloat(), 0f);
                                                 //System.out.println("Ya ubil virus!");
                                             }
-                                        } else if ((entityI.getName().equals("virus") || entityI.getName().equals("virus_advanced")) && entityJ.getName().equals("player")) {
+                                        } else if ((entityI.getName().equals("virus") || entityI.getName().equals("virus_advanced") || entityI.getName().equals("virus_super_advanced")) && entityJ.getName().equals("player")) {
                                             if (entityI.getLifeTime() > 0) {
                                                 playerScore++;
                                                 entityI.decreaseLT(10000);
@@ -409,7 +408,7 @@ public class Space implements Screen, GestureListener {
         }
     }
 
-    private void addPart() {
+    private void addPart () {
         Color color = new Color((rand.nextInt(25) + 230)/255f, (rand.nextInt(15) + 1)/255f, (rand.nextInt(50) + 25)/255f, 1f);
         float x = meter*spec.get().position.x - meter*spec.get().viewportWidth + rand.nextInt((int)(2f*meter*spec.get().viewportWidth));
         float y = meter*spec.get().position.y - meter*spec.get().viewportHeight + rand.nextInt((int)(2f*meter*spec.get().viewportHeight));
@@ -437,7 +436,7 @@ public class Space implements Screen, GestureListener {
         stage.addActor(particle);
         advSprites.addFirst(particle);
     }
-    private void changePart(AdvSprite e) {
+    private void changePart (AdvSprite e) {
         e.addAction(Actions.alpha(0f));
         Color color = new Color((rand.nextInt(25) + 230)/255f, (rand.nextInt(15) + 1)/255f, (rand.nextInt(50) + 25)/255f, 1f);
         float x = meter*spec.get().position.x - meter*spec.get().viewportWidth + rand.nextInt((int)(2f*meter*spec.get().viewportWidth));
@@ -460,7 +459,7 @@ public class Space implements Screen, GestureListener {
         ));
         e.setColor(color);
     }
-    private void addBounds() {
+    private void addBounds () {
         for (int i = 0; i < 20; i++) {
             AdvSprite boundSpr = new AdvSprite(game.atlas.createSprite("bound_left"), -15f, -15f + i * 5f, 5f, 5f);
             bounds.addFirst(new Bound(boundSpr, world));
@@ -491,15 +490,15 @@ public class Space implements Screen, GestureListener {
         }
     }
 
-    private void spawnRedCell(int hp) {
+    private void spawnRedCell (int hp) {
         float x = spec.get().position.x - spec.get().viewportWidth + rand.nextInt((int)spec.get().viewportWidth) + rand.nextFloat();
         float y = spec.get().position.y - spec.get().viewportHeight + rand.nextInt((int)spec.get().viewportHeight) + rand.nextFloat();
         spawnRedCell(hp, new Vector2(x, y));
     }
-    private void spawnRedCell(int hp, float x, float y) {
+    private void spawnRedCell (int hp, float x, float y) {
         spawnRedCell(hp, new Vector2(x, y));
     }
-    private void spawnRedCell(int hp, Vector2 vec) {
+    private void spawnRedCell (int hp, Vector2 vec) {
         AdvSprite redEntity = new AdvSprite(game.atlas.createSprite("red"), 0, 0, 1f, 1f);
         Entity redSubject = new Entity(redEntity, world, 0f, 10f, 0.2f, "red_cell");
         RedCell redCell = new RedCell(redSubject, hp);
@@ -518,23 +517,30 @@ public class Space implements Screen, GestureListener {
         stage.addActor(redCell);
         entities.addFirst(redCell);
     } // Original
-    private void spawnVirus(int hp, float speed) {
+    private void spawnVirus (int hp, float speed) {
         float x = spec.get().position.x - spec.get().viewportWidth + rand.nextInt((int)spec.get().viewportWidth) + rand.nextFloat();
         float y = spec.get().position.y - spec.get().viewportHeight + rand.nextInt((int)spec.get().viewportHeight) + rand.nextFloat();
         spawnVirus(hp, speed, new Vector2(x, y));
     }
-    private void spawnVirus(int hp, float speed, float x, float y) {
+    private void spawnVirus (int hp, float speed, float x, float y) {
         spawnVirus(hp, speed, new Vector2(x, y));
     }
-    private void spawnVirus(int hp, float speed, Vector2 vec) {
-        int virusType = rand.nextInt(12) + 1;
+    private void spawnVirus (int hp, float speed, Vector2 vec) {
+        spawnVirus(hp, speed, vec, rand.nextInt(13) + 1);
+    }
+    private void spawnVirus (int hp, float speed, Vector2 vec, int type) {
         AdvSprite virusEnt;
         Entity virusSub;
-        if (virusType > 9) {
-            virusEnt = new AdvSprite(game.atlas.createSprite("virus", virusType), 0, 0, 1f, 1f);
+        if (type > 12) {
+            virusEnt = new AdvSprite(game.atlas.createSprite("virus", type), 0, 0, 2f, 2f);
+            virusSub = new Entity(virusEnt, world, 0f, 15f, 0.2f, "virus_super_advanced");
+            hp += 200;
+        } else if (type > 9) {
+            virusEnt = new AdvSprite(game.atlas.createSprite("virus", type), 0, 0, 1f, 1f);
             virusSub = new Entity(virusEnt, world, 0f, 5f, 0.2f, "virus_advanced");
+            hp += 50;
         } else {
-            virusEnt = new AdvSprite(game.atlas.createSprite("virus", virusType), 0, 0, 0.5f, 0.5f);
+            virusEnt = new AdvSprite(game.atlas.createSprite("virus", type), 0, 0, 0.5f, 0.5f);
             virusSub = new Entity(virusEnt, world, 0f, 3f, 0.2f, "virus");
         }
         Virus virus = new Virus(virusSub, hp, speed);
@@ -553,15 +559,15 @@ public class Space implements Screen, GestureListener {
         stage.addActor(virus);
         entities.addFirst(virus);
     } // Original
-    private void spawnLymph(int hp) {
+    private void spawnLymph (int hp) {
         float x = spec.get().position.x - spec.get().viewportWidth + rand.nextInt((int)spec.get().viewportWidth) + rand.nextFloat();
         float y = spec.get().position.y - spec.get().viewportHeight + rand.nextInt((int)spec.get().viewportHeight) + rand.nextFloat();
         spawnLymph(hp, new Vector2(x, y));
     }
-    private void spawnLymph(int hp, float x, float y) {
+    private void spawnLymph (int hp, float x, float y) {
         spawnLymph(hp, new Vector2(x, y));
     }
-    private void spawnLymph(int hp, Vector2 vec) {
+    private void spawnLymph (int hp, Vector2 vec) {
         AdvSprite lymEntity = new AdvSprite(game.atlas.createSprite("purple"), 0, 0, 1f, 1f);
         Entity lymSubject = new Entity(lymEntity, world, 0f, 8f, 0.2f, "lymphocyte");
         Lymphocyte lymphocyte = new Lymphocyte(lymSubject, hp);
@@ -643,13 +649,11 @@ public class Space implements Screen, GestureListener {
                         float x = entityI.getPosition().x;
                         float y = entityI.getPosition().y;
                         double minDist = 1000000;
-                        boolean virusExist = false;
                         Iterator<Entity> iteratorJ = entities.iterator();
                         while (iteratorJ.hasNext()) {
                             Entity entityJ = iteratorJ.next();
                             if (!entityI.equals(entityJ)) {
-                                if (entityJ.getName() != null && entityJ.getName().equals("virus")) {
-                                    virusExist = true;
+                                if (virusNumber > 0 && entityJ.getName() != null && (entityJ.getName().equals("virus") || entityJ.getName().equals("virus_advanced") || entityJ.getName().equals("virus_super_advanced"))) {
                                     float tempX = (entityJ.getPosition().x - entityI.getPosition().x);
                                     float tempY = (entityJ.getPosition().y - entityI.getPosition().y);
                                     double distance = Math.sqrt((double)(tempX * tempX + tempY * tempY));
@@ -661,20 +665,18 @@ public class Space implements Screen, GestureListener {
                                 }
                             }
                         }
-                        if (virusExist) {
+                        if (virusNumber > 0) {
                             entityI.updateLife(x, y);
                         }
                     } else if (virusNumber > 0 && entityI.getName().equals("virus_advanced")) {
                         float x = entityI.getPosition().x;
                         float y = entityI.getPosition().y;
                         double minDist = 1000000;
-                        boolean redCellExist = false;
                         Iterator<Entity> iteratorJ = entities.iterator();
                         while (iteratorJ.hasNext()) {
                             Entity entityJ = iteratorJ.next();
                             if (!entityI.equals(entityJ)) {
-                                if (entityJ.getName() != null && entityJ.getName().equals("red_cell")) {
-                                    redCellExist = true;
+                                if (redCellNumber > 0 && entityJ.getName() != null && entityJ.getName().equals("red_cell")) {
                                     float tempX = (entityJ.getPosition().x - entityI.getPosition().x);
                                     float tempY = (entityJ.getPosition().y - entityI.getPosition().y);
                                     double distance = Math.sqrt((double)(tempX * tempX + tempY * tempY));
@@ -686,9 +688,16 @@ public class Space implements Screen, GestureListener {
                                 }
                             }
                         }
-                        if (redCellExist) {
+                        if (redCellNumber > 0) {
                             entityI.updateLife(x, y);
                         }
+                    } else if (virusNumber > 0 && entityI.getName().equals("virus_super_advanced")) {
+                        if (rand.nextInt(250) == 0){
+                            newVirusX = entityI.getPosition().x;
+                            newVirusY = entityI.getPosition().y;
+                            virusScore++;
+                        }
+                        entityI.updateLife();
                     } else {
                         entityI.updateLife();
                     }
@@ -741,17 +750,17 @@ public class Space implements Screen, GestureListener {
         for (int i = 0; i < 5; i++) spawnLymph(500, getSpawnLocation());
     }
 
-    private void idleLevelTest() {
+    private void idleLevelTest () {
         isTrainOver = true;
         if (rand.nextInt(100) == 0) spawnVirus(75, rand.nextFloat() / 2f + 0.3f, getSpawnLocation());
         if (rand.nextInt(50) == 0) spawnRedCell(150, getSpawnLocation());
         if (rand.nextInt(300) == 0) spawnLymph(125, getSpawnLocation());
         if (oldVirusScore < virusScore) {
-            spawnVirus(50, rand.nextFloat() / 3f + 0.25f, newVirusX, newVirusY);
+            spawnVirus(75, rand.nextFloat() / 2f + 0.3f, newVirusX, newVirusY);
             oldVirusScore = virusScore;
         }
     }
-    private void idleLevel_0() {
+    private void idleLevel_0 () {
         if (!isTrainOver) {
             if (spec.getY() == player.getPosition().y) {
                 isTrainOver = true;
@@ -823,42 +832,42 @@ public class Space implements Screen, GestureListener {
     }
 
     @Override
-    public void pause() {
+    public void pause () {
         game.sounds.mainTheme.pause();
         game.sounds.mainTheme.stop();
     }
 
     @Override
-    public void resume() {
+    public void resume () {
         if (!game.sounds.mainTheme.isPlaying()) game.sounds.mainTheme.play();
     }
 
     @Override
-    public void hide() {
+    public void hide () {
 
     }
 
     @Override
-    public void dispose() {
+    public void dispose () {
     }
 
     @Override
-    public boolean touchDown(float x, float y, int pointer, int button) {
+    public boolean touchDown (float x, float y, int pointer, int button) {
         return false;
     }
 
     @Override
-    public boolean tap(float x, float y, int count, int button) {
+    public boolean tap (float x, float y, int count, int button) {
         return false;
     }
 
     @Override
-    public boolean longPress(float x, float y) {
+    public boolean longPress (float x, float y) {
         return false;
     }
 
     @Override
-    public boolean fling(float velocityX, float velocityY, int button) {
+    public boolean fling (float velocityX, float velocityY, int button) {
 
         if (isTrainOver) {
             if (Gdx.app.getType().equals(Application.ApplicationType.Android)) {
@@ -880,27 +889,27 @@ public class Space implements Screen, GestureListener {
     }
 
     @Override
-    public boolean pan(float x, float y, float deltaX, float deltaY) {
+    public boolean pan (float x, float y, float deltaX, float deltaY) {
         return false;
     }
 
     @Override
-    public boolean panStop(float x, float y, int pointer, int button) {
+    public boolean panStop (float x, float y, int pointer, int button) {
         return false;
     }
 
     @Override
-    public boolean zoom(float initialDistance, float distance) {
+    public boolean zoom (float initialDistance, float distance) {
         return false;
     }
 
     @Override
-    public boolean pinch(Vector2 initialPointer1, Vector2 initialPointer2, Vector2 pointer1, Vector2 pointer2) {
+    public boolean pinch (Vector2 initialPointer1, Vector2 initialPointer2, Vector2 pointer1, Vector2 pointer2) {
         return false;
     }
 
     @Override
-    public void pinchStop() {
+    public void pinchStop () {
 
     }
 }

@@ -268,7 +268,32 @@ public class Menu implements Screen {
                 stage.getBatch(),
                 game.textSystem.get("devs"),
                 0.5f * (game.width - game.fonts.largeS.getWidth(game.textSystem.get("devs"))),
-                0.5f * (game.height + game.fonts.largeS.getWidth("A"))
+                0.5f * (game.height + 12.0f*game.fonts.largeS.getWidth("A"))
+        );
+        game.fonts.largeS.draw(
+                stage.getBatch(),
+                game.textSystem.get("my_name"),
+                0.5f * (game.width - game.fonts.largeS.getWidth(game.textSystem.get("my_name"))),
+                0.5f * (game.height + 6.0f*game.fonts.largeS.getWidth("A"))
+        );
+        game.fonts.largeS.draw(
+                stage.getBatch(),
+                game.textSystem.get("cnt"),
+                0.5f * (game.width - game.fonts.largeS.getWidth(game.textSystem.get("cnt"))),
+
+                0.5f * (game.height - 3.0f*game.fonts.largeS.getWidth("A"))
+        );
+        game.fonts.largeS.draw(
+                stage.getBatch(),
+                game.textSystem.get("my_mail"),
+                0.5f * (game.width - game.fonts.largeS.getWidth(game.textSystem.get("my_mail"))),
+                0.5f * (game.height - 9.0f*game.fonts.largeS.getWidth("A"))
+        );
+        game.fonts.mediumS.draw(
+                stage.getBatch(),
+                game.textSystem.get("versus"),
+                0.005f * game.width,
+                1.25f*game.fonts.mediumS.getWidth("A")
         );
     }
 
