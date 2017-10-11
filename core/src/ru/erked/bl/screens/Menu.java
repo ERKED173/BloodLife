@@ -70,7 +70,7 @@ public class Menu implements Screen {
             obf.deactivate(1f, delta);
         } else if (nextStart) {
             if (obf.isActive()) {
-                game.setScreen(new Space(game, -1));
+                game.setScreen(new Space(game));
                 dispose();
             } else {
                 obf.activate(1f, delta);
@@ -165,15 +165,15 @@ public class Menu implements Screen {
                     about.get().addAction(Actions.moveTo(0.475f*game.width, 0.025f*game.width));
                     about.get().setText(game.textSystem.get("back_button"));
                     isAbout = true;
-                    start.get().setChecked(false);
+                    about.get().setChecked(false);
                 } else if (!obf.isActive() && isAbout) {
                     game.sounds.click.play();
                     about.get().addAction(Actions.moveTo(0.25f*game.width, 0.5f*game.height - 0.275f*game.width));
                     about.get().setText(game.textSystem.get("about_button"));
                     isAbout = false;
-                    start.get().setChecked(false);
+                    about.get().setChecked(false);
                 } else {
-                    start.get().setChecked(false);
+                    about.get().setChecked(false);
                 }
             }
         });
@@ -268,7 +268,7 @@ public class Menu implements Screen {
                 stage.getBatch(),
                 game.textSystem.get("devs"),
                 0.5f * (game.width - game.fonts.largeS.getWidth(game.textSystem.get("devs"))),
-                0.5f * (game.height + 12.0f*game.fonts.largeS.getWidth("A"))
+                0.5f * (game.height + 10.0f*game.fonts.largeS.getWidth("A"))
         );
         game.fonts.largeS.draw(
                 stage.getBatch(),
@@ -287,13 +287,13 @@ public class Menu implements Screen {
                 stage.getBatch(),
                 game.textSystem.get("my_mail"),
                 0.5f * (game.width - game.fonts.largeS.getWidth(game.textSystem.get("my_mail"))),
-                0.5f * (game.height - 9.0f*game.fonts.largeS.getWidth("A"))
+                0.5f * (game.height - 7.0f*game.fonts.largeS.getWidth("A"))
         );
-        game.fonts.mediumS.draw(
+        game.fonts.smallS.draw(
                 stage.getBatch(),
                 game.textSystem.get("versus"),
                 0.005f * game.width,
-                1.25f*game.fonts.mediumS.getWidth("A")
+                1.25f*game.fonts.smallS.getWidth("A")
         );
     }
 

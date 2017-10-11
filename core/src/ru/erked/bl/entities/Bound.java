@@ -55,11 +55,9 @@ public class Bound extends AdvSprite {
 
     @Override
     public void updateSprite (Camera camera) {
-        setPosition(
-                meter * body.getPosition().x - camera.position.x * meter - 0.5f * sprite.getWidth() + 0.5f*camera.viewportWidth * meter,
-                meter * body.getPosition().y - camera.position.y * meter - 0.5f * sprite.getHeight() + 0.5f*camera.viewportHeight * meter
-        );
-        setRotation((float)Math.toDegrees(body.getAngle()));
+        float x = meter * body.getPosition().x - camera.position.x * meter - 0.5f * sprite.getWidth() + 0.5f*camera.viewportWidth * meter;
+        float y = meter * body.getPosition().y - camera.position.y * meter - 0.5f * sprite.getHeight() + 0.5f*camera.viewportHeight * meter;
+        setPosition(x, y);
     }
 
     public Vector2 getPosition () {
