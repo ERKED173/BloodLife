@@ -46,12 +46,12 @@ class Space implements Screen, GestureListener {
     private Obfuscation obf;
     private RandomXS128 rand;
     private Spectator spec;
+
     private LinkedList<AdvSprite> advSprites;
     private LinkedList<Entity> redCells;
+    private LinkedList<Entity> thrombocytes;
     private LinkedList<Entity> lymphocytes;
     private LinkedList<Entity> viruses;
-    private LinkedList<Entity> virusesAdv;
-    private LinkedList<Entity> virusesSupAdv;
     private LinkedList<Bound> bounds;
     private Entity player;
 
@@ -63,22 +63,38 @@ class Space implements Screen, GestureListener {
     private float accumulator = 0f;
     private float meter = Technical.METER;
 
+    private boolean isGameOver = false;
+    private boolean isVictory = false;
     private int playerScore = 0;
     private int lymphScore = 0;
+
+    private int curLevel;
 
     private AdvSprite map;
     private AdvSprite point;
     private AdvSprite lymphSign;
+    private AdvSprite lAndPSign;
     private AdvSprite playerSign;
-    private LinkedList<AdvSprite> redCellPoints;
+    private AdvSprite virusSign;
+    private AdvSprite redCellSign;
     private LinkedList<AdvSprite> lymphPoints;
     private LinkedList<AdvSprite> virusPoints;
+    private LinkedList<AdvSprite> redCellPoints;
+    private LinkedList<AdvSprite> thrombPoints;
+
+    private long internalTime = 0;
+    private long timer = 0;
+    private int score = 0;
+    private boolean hasThromb = false;
 
     private BLButton exit;
     private boolean toMenu = false;
 
-    Space (MainBL game) {
+    private String[] text;
+
+    Space (MainBL game, int curLevel) {
         this.game = game;
+        this.curLevel = curLevel;
         stage = new Stage();
         rand = new RandomXS128();
         float worldWidth = (1f / Technical.METER) * Gdx.graphics.getWidth();
@@ -88,9 +104,8 @@ class Space implements Screen, GestureListener {
         world = new World(new Vector2(0, 0), true);
         redCells = new LinkedList<Entity>();
         viruses = new LinkedList<Entity>();
-        virusesAdv = new LinkedList<Entity>();
-        virusesSupAdv = new LinkedList<Entity>();
         lymphocytes = new LinkedList<Entity>();
+        thrombocytes = new LinkedList<Entity>();
         bounds = new LinkedList<Bound>();
         advSprites = new LinkedList<AdvSprite>();
     }
@@ -103,8 +118,8 @@ class Space implements Screen, GestureListener {
         AdvSprite playerEnt = new AdvSprite(game.atlas.createSprite("white"), 0f, 0f, 1f, 1f);
         player = new Entity(playerEnt, world, 0f, 5f, 0.2f, "player");
         player.getBody().setAngularVelocity(0.25f);
-        spawnLymph(1000000, getRandSpawnLoc());
 
+        initLevels();
         addBounds();
         for (int i = 0; i < rand.nextInt(10) + 20; i++) { addPart(); }
 
@@ -121,10 +136,15 @@ class Space implements Screen, GestureListener {
 
         buttonInit();
         obf = new Obfuscation(game.atlas.createSprite("obfuscation"), true);
+
+        text = new String[2];
+        text[0] = game.textSystem.get("lose");
+        text[1] = game.textSystem.get("sex");
     }
 
     @Override
     public void render (float delta) {
+        internalTime++;
         Gdx.gl.glClearColor(220f/255f, 150f/255f, 180f/255f, 0f);
         //Gdx.gl.glClearColor(255f/255f, 255f/255f, 255f/255f, 0f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
@@ -134,10 +154,9 @@ class Space implements Screen, GestureListener {
         for (Entity r : redCells) gravity(r.getBody(), s);
         for (Entity l : lymphocytes) gravity(l.getBody(), s);
         for (Entity v : viruses) gravity(v.getBody(), s);
-        for (Entity v : virusesAdv) gravity(v.getBody(), s);
-        for (Entity v : virusesSupAdv) gravity(v.getBody(), s);
+        for (Entity t : thrombocytes) gravity(t.getBody(), s);
 
-        lifeCycle();
+        if (!isGameOver) lifeCycle();
 
         buttonUpdate();
         UIUpdate();
@@ -155,24 +174,112 @@ class Space implements Screen, GestureListener {
         spec.update();
 
         stage.getBatch().begin();
-        drawText();
-        playerSign.draw(stage.getBatch(), 1f);
-        lymphSign.draw(stage.getBatch(), 1f);
-        exit.get().draw(stage.getBatch(), 1f);
-        map.draw(stage.getBatch(), 1f);
-        point.draw(stage.getBatch(), 1f);
 
-        if(obf.isActive() && !toMenu){
+        if (!isGameOver) {
+            drawText();
+            if (curLevel == 4) {
+                lAndPSign.draw(stage.getBatch(), 1f);
+            } else if (curLevel == 3) {
+                redCellSign.draw(stage.getBatch(), 1f);
+            } else if (curLevel == 2) {
+                virusSign.draw(stage.getBatch(), 1f);
+            } else if (curLevel != 1) {
+                switch (curLevel % 4) {
+                    case 1: {
+                        virusSign.draw(stage.getBatch(), 1f);
+                        break;
+                    }
+                    case 2: {
+                        playerSign.draw(stage.getBatch(), 1f);
+                        lymphSign.draw(stage.getBatch(), 1f);
+                        break;
+                    }
+                    case 3: {
+                        redCellSign.draw(stage.getBatch(), 1f);
+                        break;
+                    }
+                    case 0: {
+                        lAndPSign.draw(stage.getBatch(), 1f);
+                        break;
+                    }
+                }
+            }
+            exit.get().setVisible(true);
+            exit.get().draw(stage.getBatch(), 1f);
+            map.draw(stage.getBatch(), 1f);
+            point.draw(stage.getBatch(), 1f);
+        } else {
+            if (curLevel == 4) {
+                lAndPSign.setVisible(false);
+            } else if (curLevel == 3) {
+                redCellSign.setVisible(false);
+            } else if (curLevel == 2) {
+                virusSign.setVisible(false);
+            } else if (curLevel != 1) {
+                switch (curLevel % 4) {
+                    case 1: {
+                        virusSign.setVisible(false);
+                        break;
+                    }
+                    case 2: {
+                        playerSign.setVisible(false);
+                        lymphSign.setVisible(false);
+                        break;
+                    }
+                    case 3: {
+                        redCellSign.setVisible(false);
+                        break;
+                    }
+                    case 0: {
+                        lAndPSign.setVisible(false);
+                        break;
+                    }
+                }
+            }
+            map.setVisible(false);
+            point.setVisible(false);
+            for (AdvSprite adv : virusPoints)   adv.setVisible(false);
+            for (AdvSprite adv : lymphPoints)   adv.setVisible(false);
+            for (AdvSprite adv : redCellPoints) adv.setVisible(false);
+            for (AdvSprite adv : thrombPoints)  adv.setVisible(false);
+            exit.get().setVisible(false);
+        }
+
+        obf.draw(stage.getBatch(), obf.getAlpha());
+
+        if(obf.isActive() && !toMenu && !isGameOver){
             obf.deactivate(1f, delta);
         } else if (toMenu) {
             if (obf.isActive()) {
-                game.setScreen(new Menu(game));
+                game.setScreen(new Menu(game, true));
                 dispose();
             } else {
                 obf.activate(1f, delta);
             }
+        } else if (isGameOver) {
+            if (obf.isActive()) {
+                if (isVictory) Menu.maxLevel++;
+                game.setScreen(new Menu(game, true));
+                dispose();
+            } else {
+                obf.activate(4f, delta);
+                if (isVictory) {
+                    game.fonts.large.draw(
+                            stage.getBatch(),
+                            game.textSystem.get("rivera"),
+                            0.5f*(game.width - game.fonts.large.getWidth(game.textSystem.get("rivera"))),
+                            0.5f*(game.height + game.fonts.large.getHeight("A"))
+                    );
+                } else {
+                    game.fonts.large.draw(
+                            stage.getBatch(),
+                            game.textSystem.get("end_of_life"),
+                            0.5f*(game.width - game.fonts.large.getWidth(game.textSystem.get("end_of_life"))),
+                            0.5f*(game.height + game.fonts.large.getHeight("A"))
+                    );
+                }
+            }
         }
-        obf.draw(stage.getBatch(), obf.getAlpha());
 
         stage.getBatch().end();
 
@@ -202,9 +309,10 @@ class Space implements Screen, GestureListener {
 
             @Override
             public void postSolve(Contact contact, ContactImpulse impulse) {
-                lymphVersusViruses(contact);
-                redCellsVersusViruses(contact);
+                if (curLevel % 4 == 2 || curLevel % 4 == 0) lymphVersusViruses(contact);
                 playerVersusViruses(contact);
+                if (curLevel % 4 == 3 && !hasThromb) playerVersusThrombs(contact);
+                if (curLevel % 4 == 3 && hasThromb) playerVersusRedCells(contact);
             }
         };
     }
@@ -213,8 +321,6 @@ class Space implements Screen, GestureListener {
         while (iLymph.hasNext()) {
             Entity lymph = iLymph.next();
             Iterator<Entity> iVirus = viruses.iterator();
-            Iterator<Entity> iVirusAdv = virusesAdv.iterator();
-            Iterator<Entity> iVirusSupAdv = virusesSupAdv.iterator();
             while (iVirus.hasNext()) {
                 Entity virus = iVirus.next();
                 if (contact.getFixtureA().getBody().equals(lymph.getBody()) && contact.getFixtureB().getBody().equals(virus.getBody())) {
@@ -238,142 +344,45 @@ class Space implements Screen, GestureListener {
                 }
             }
             if (iVirus.hasNext()) break;
-            //
-            while (iVirusAdv.hasNext()) {
-                Entity virusAdv = iVirusAdv.next();
-                if (contact.getFixtureA().getBody().equals(lymph.getBody()) && contact.getFixtureB().getBody().equals(virusAdv.getBody())) {
-                    if (lymph.getLifeTime() > 0 && virusAdv.getLifeTime() > 0) {
-                        virusAdv.decreaseLT(50);
-                        virusAdv.addAction(Actions.color(Color.RED));
-                        virusAdv.addAction(Actions.color(Color.WHITE, 0.5f));
-                        if (virusAdv.getLifeTime() == 0) lymphScore++;
-                        //System.out.println("Moy drug ubil virus!");
-                        break;
-                    }
-                } else if (contact.getFixtureB().getBody().equals(lymph.getBody()) && contact.getFixtureA().getBody().equals(virusAdv.getBody())) {
-                    if (lymph.getLifeTime() > 0 && virusAdv.getLifeTime() > 0) {
-                        virusAdv.decreaseLT(50);
-                        if (virusAdv.getLifeTime() == 0) lymphScore++;
-                        //System.out.println("Moy drug ubil virus!");
-                        break;
-                    }
-                }
-            }
-            if (iVirusAdv.hasNext()) break;
-            //
-            while (iVirusSupAdv.hasNext()) {
-                Entity virusSupAdv = iVirusSupAdv.next();
-                if (contact.getFixtureA().getBody().equals(lymph.getBody()) && contact.getFixtureB().getBody().equals(virusSupAdv.getBody())) {
-                    if (lymph.getLifeTime() > 0 && virusSupAdv.getLifeTime() > 0) {
-                        virusSupAdv.decreaseLT(50);
-                        virusSupAdv.addAction(Actions.color(Color.RED));
-                        virusSupAdv.addAction(Actions.color(Color.WHITE, 0.5f));
-                        if (virusSupAdv.getLifeTime() == 0) lymphScore++;
-                        //System.out.println("Moy drug ubil virus!");
-                        break;
-                    }
-                } else if (contact.getFixtureB().getBody().equals(lymph.getBody()) && contact.getFixtureA().getBody().equals(virusSupAdv.getBody())) {
-                    if (lymph.getLifeTime() > 0 && virusSupAdv.getLifeTime() > 0) {
-                        virusSupAdv.decreaseLT(50);
-                        virusSupAdv.addAction(Actions.color(Color.RED));
-                        virusSupAdv.addAction(Actions.color(Color.WHITE, 0.5f));
-                        if (virusSupAdv.getLifeTime() == 0) lymphScore++;
-                        //System.out.println("Moy drug ubil virus!");
-                        break;
-                    }
-                }
-            }
-            if (iVirusSupAdv.hasNext()) break;
-        }
-    }
-    private void redCellsVersusViruses (Contact contact) {
-        Iterator<Entity> virusI = viruses.iterator();
-        Iterator<Entity> virusAdvI = virusesAdv.iterator();
-        Iterator<Entity> virusSupAdvI = virusesSupAdv.iterator();
-        while (virusI.hasNext()) {
-            Entity virus = virusI.next();
-            Iterator<Entity> redCellI = redCells.iterator();
-            while (redCellI.hasNext()) {
-                Entity redCell = redCellI.next();
-                if (contact.getFixtureA().getBody().equals(virus.getBody()) && contact.getFixtureB().getBody().equals(redCell.getBody())) {
-                    if (virus.getLifeTime() > 0 && redCell.getLifeTime() > 0) {
-                        redCell.decreaseLT(10000);
-                        //System.out.println("Tupoy virus ubivaet nashih!");
-                        break;
-                    }
-                } else if (contact.getFixtureB().getBody().equals(virus.getBody()) && contact.getFixtureA().getBody().equals(redCell.getBody())) {
-                    if (virus.getLifeTime() > 0 && redCell.getLifeTime() > 0) {
-                        redCell.decreaseLT(10000);
-                        //System.out.println("Tupoy virus ubivaet nashih!");
-                        break;
-                    }
-                }
-            }
-        }
-
-        while (virusAdvI.hasNext()) {
-            Entity virusAdv = virusAdvI.next();
-            Iterator<Entity> redCellI = redCells.iterator();
-            while (redCellI.hasNext()) {
-                Entity redCell = redCellI.next();
-                if (contact.getFixtureA().getBody().equals(virusAdv.getBody()) && contact.getFixtureB().getBody().equals(redCell.getBody())) {
-                    if (virusAdv.getLifeTime() > 0 && redCell.getLifeTime() > 0) {
-                        redCell.decreaseLT(10000);
-                        //System.out.println("Tupoy virus ubivaet nashih!");
-                        break;
-                    }
-                } else if (contact.getFixtureB().getBody().equals(virusAdv.getBody()) && contact.getFixtureA().getBody().equals(redCell.getBody())) {
-                    if (virusAdv.getLifeTime() > 0 && redCell.getLifeTime() > 0) {
-                        redCell.decreaseLT(10000);
-                        //System.out.println("Tupoy virus ubivaet nashih!");
-                        break;
-                    }
-                }
-            }
-        }
-
-        while (virusSupAdvI.hasNext()) {
-            Entity virusSupAdv = virusSupAdvI.next();
-            Iterator<Entity> redCellI = redCells.iterator();
-            while (redCellI.hasNext()) {
-                Entity redCell = redCellI.next();
-                if (contact.getFixtureA().getBody().equals(virusSupAdv.getBody()) && contact.getFixtureB().getBody().equals(redCell.getBody())) {
-                    if (virusSupAdv.getLifeTime() > 0 && redCell.getLifeTime() > 0) {
-                        redCell.decreaseLT(10000);
-                        //System.out.println("Tupoy virus ubivaet nashih!");
-                        break;
-                    }
-                } else if (contact.getFixtureB().getBody().equals(virusSupAdv.getBody()) && contact.getFixtureA().getBody().equals(redCell.getBody())) {
-                    if (virusSupAdv.getLifeTime() > 0 && redCell.getLifeTime() > 0) {
-                        redCell.decreaseLT(10000);
-                        //System.out.println("Tupoy virus ubivaet nashih!");
-                        break;
-                    }
-                }
-            }
         }
     }
     private void playerVersusViruses (Contact contact) {
         Iterator<Entity> iVirus = viruses.iterator();
-        Iterator<Entity> iVirusAdv = virusesAdv.iterator();
-        Iterator<Entity> iVirusSupAdv = virusesSupAdv.iterator();
         while (iVirus.hasNext()) {
             Entity virus = iVirus.next();
             if (contact.getFixtureA().getBody().equals(player.getBody()) && contact.getFixtureB().getBody().equals(virus.getBody())) {
-                if (player.getLifeTime() > 0 && virus.getLifeTime() > 0) {
-                    virus.decreaseLT(60);
-                    virus.addAction(Actions.color(Color.RED));
-                    virus.addAction(Actions.color(Color.WHITE, 0.5f));
-                    if (virus.getLifeTime() == 0) {
-                        playerScore++;
-                        game.sounds.death.play(1f, 1.25f - rand.nextFloat() / 2f, 0f);
-                    }
-                    //System.out.println("Ya ubil virus!");
-                    break;
-                }
-            }else if (contact.getFixtureB().getBody().equals(player.getBody()) && contact.getFixtureA().getBody().equals(virus.getBody())) {
                 if (virus.getLifeTime() > 0) {
-                    virus.decreaseLT(60);
+                    switch (curLevel % 4) {
+                        case 1: {
+                            virus.decreaseLT(1000);
+                            break;
+                        }
+                        case 0: case 2: {
+                            virus.decreaseLT(60);
+                            break;
+                        }
+                    }
+                    virus.addAction(Actions.color(Color.RED));
+                    virus.addAction(Actions.color(Color.WHITE, 0.5f));
+                    if (virus.getLifeTime() == 0) {
+                        playerScore++;
+                        game.sounds.death.play(1f, 1.25f - rand.nextFloat() / 2f, 0f);
+                    }
+                    //System.out.println("Ya ubil virus!");
+                    break;
+                }
+            } else if (contact.getFixtureB().getBody().equals(player.getBody()) && contact.getFixtureA().getBody().equals(virus.getBody())) {
+                if (virus.getLifeTime() > 0) {
+                    switch (curLevel % 4) {
+                        case 1: {
+                            virus.decreaseLT(1000);
+                            break;
+                        }
+                        case 0: case 2: {
+                            virus.decreaseLT(60);
+                            break;
+                        }
+                    }
                     virus.addAction(Actions.color(Color.RED));
                     virus.addAction(Actions.color(Color.WHITE, 0.5f));
                     if (virus.getLifeTime() == 0) {
@@ -385,60 +394,52 @@ class Space implements Screen, GestureListener {
                 }
             }
         }
-        //
-        while (iVirusAdv.hasNext()) {
-            Entity virusAdv = iVirusAdv.next();
-            if (contact.getFixtureA().getBody().equals(player.getBody()) && contact.getFixtureB().getBody().equals(virusAdv.getBody())) {
-                if (virusAdv.getLifeTime() > 0) {
-                    virusAdv.decreaseLT(60);
-                    virusAdv.addAction(Actions.color(Color.RED));
-                    virusAdv.addAction(Actions.color(Color.WHITE, 0.5f));
-                    if (virusAdv.getLifeTime() == 0) {
-                        playerScore++;
-                        game.sounds.death.play(1f, 1.25f - rand.nextFloat() / 2f, 0f);
-                    }
-                    //System.out.println("Ya ubil virus!");
+    }
+    private void playerVersusThrombs (Contact contact) {
+        Iterator<Entity> iThromb = thrombocytes.iterator();
+        while (iThromb.hasNext()) {
+            Entity thromb = iThromb.next();
+            if (contact.getFixtureA().getBody().equals(player.getBody()) && contact.getFixtureB().getBody().equals(thromb.getBody())) {
+                if (thromb.getLifeTime() > 0) {
+                    thromb.setName("thrombocyte_s");
+                    hasThromb = true;
                     break;
                 }
-            } else if (contact.getFixtureB().getBody().equals(player.getBody()) && contact.getFixtureA().getBody().equals(virusAdv.getBody())) {
-                if (virusAdv.getLifeTime() > 0) {
-                    virusAdv.decreaseLT(60);
-                    virusAdv.addAction(Actions.color(Color.RED));
-                    virusAdv.addAction(Actions.color(Color.WHITE, 0.5f));
-                    if (virusAdv.getLifeTime() == 0) {
-                        playerScore++;
-                        game.sounds.death.play(1f, 1.25f - rand.nextFloat() / 2f, 0f);
-                    }
-                    //System.out.println("Ya ubil virus!");
+            }else if (contact.getFixtureB().getBody().equals(player.getBody()) && contact.getFixtureA().getBody().equals(thromb.getBody())) {
+                if (thromb.getLifeTime() > 0) {
+                    thromb.setName("thrombocyte_s");
+                    hasThromb = true;
                     break;
                 }
             }
         }
-        //
-        while (iVirusSupAdv.hasNext()) {
-            Entity virusSupAdv = iVirusSupAdv.next();
-            if (contact.getFixtureA().getBody().equals(player.getBody()) && contact.getFixtureB().getBody().equals(virusSupAdv.getBody())) {
-                if (virusSupAdv.getLifeTime() > 0) {
-                    virusSupAdv.decreaseLT(60);
-                    virusSupAdv.addAction(Actions.color(Color.RED));
-                    virusSupAdv.addAction(Actions.color(Color.WHITE, 0.5f));
-                    if (virusSupAdv.getLifeTime() == 0) {
-                        playerScore++;
-                        game.sounds.death.play(1f, 1.25f - rand.nextFloat() / 2f, 0f);
+    }
+    private void playerVersusRedCells (Contact contact) {
+        Iterator<Entity> iRedCell = redCells.iterator();
+        while (iRedCell.hasNext()) {
+            Entity redCell = iRedCell.next();
+            if (contact.getFixtureA().getBody().equals(player.getBody()) && contact.getFixtureB().getBody().equals(redCell.getBody())) {
+                if (redCell.getLifeTime() > 0 && redCell.getName().equals("red_cell_sick")) {
+                    redCell.addAction(Actions.color(Color.WHITE, 1f));
+                    redCell.setName("red_cell");
+                    for (int i = 0; i < thrombocytes.size(); i++){
+                        if (thrombocytes.get(i).getName().equals("thrombocyte_s"))
+                            thrombocytes.get(i).decreaseLT(1000);
                     }
-                    //System.out.println("Ya ubil virus!");
+                    score--;
+                    hasThromb = false;
                     break;
                 }
-            } else if (contact.getFixtureB().getBody().equals(player.getBody()) && contact.getFixtureA().getBody().equals(virusSupAdv.getBody())) {
-                if (virusSupAdv.getLifeTime() > 0) {
-                    virusSupAdv.decreaseLT(60);
-                    virusSupAdv.addAction(Actions.color(Color.RED));
-                    virusSupAdv.addAction(Actions.color(Color.WHITE, 0.5f));
-                    if (virusSupAdv.getLifeTime() == 0) {
-                        playerScore++;
-                        game.sounds.death.play(1f, 1.25f - rand.nextFloat() / 2f, 0f);
+            }else if (contact.getFixtureB().getBody().equals(player.getBody()) && contact.getFixtureA().getBody().equals(redCell.getBody())) {
+                if (redCell.getLifeTime() > 0 && redCell.getName().equals("red_cell_sick")) {
+                    redCell.addAction(Actions.color(Color.WHITE, 1f));
+                    redCell.setName("red_cell");
+                    for (int i = 0; i < thrombocytes.size(); i++) {
+                        if (thrombocytes.get(i).getName().equals("thrombocyte_s"))
+                            thrombocytes.get(i).decreaseLT(1000);
                     }
-                    //System.out.println("Ya ubil virus!");
+                    score--;
+                    hasThromb = false;
                     break;
                 }
             }
@@ -451,7 +452,7 @@ class Space implements Screen, GestureListener {
                 0.25f*game.width,
                 0.5f*game.height - 0.3f*game.width,
                 0.25f*game.width,
-                game.fonts.medium.getFont(),
+                game.fonts.small.getFont(),
                 game.textSystem.get("to_menu_button"),
                 1,
                 "to_menu_button"
@@ -478,15 +479,50 @@ class Space implements Screen, GestureListener {
     private void UIInit() {
         map = new AdvSprite(game.atlas.createSprite("map"), 0f, 0f, 0.3f * game.width, 0.3f * game.width);
         point = new AdvSprite(game.atlas.createSprite("map_point"), 0f, 0f, 0.02f * game.width, 0.02f * game.width);
-        redCellPoints = new LinkedList<AdvSprite>();
         lymphPoints = new LinkedList<AdvSprite>();
         virusPoints = new LinkedList<AdvSprite>();
+        redCellPoints = new LinkedList<AdvSprite>();
+        thrombPoints = new LinkedList<AdvSprite>();
 
-        lymphSign = new AdvSprite(game.atlas.createSprite("lymphocytes"), 0f, 0f, 0.1f*game.width, 0.1f*game.width);
-        playerSign = new AdvSprite(game.atlas.createSprite("white"), 0f, 0f, 0.1f*game.width, 0.1f*game.width);
+        if (curLevel == 4) {
+            lAndPSign = new AdvSprite(game.atlas.createSprite("lymphocytes_and_player"), 0f, 0f, 0.1f * game.width, 0.1f * game.width);
+            stage.addActor(lAndPSign);
+        } else if (curLevel == 3) {
+            redCellSign = new AdvSprite(game.atlas.createSprite("red"), 0f, 0f, 0.1f * game.width, 0.1f * game.width);
+            redCellSign.setColor(Color.GRAY);
+            stage.addActor(redCellSign);
+        } else if (curLevel == 2) {
+            virusSign = new AdvSprite(game.atlas.createSprite("virus", 11), 0f, 0f, 0.1f * game.width, 0.1f * game.width);
+            stage.addActor(virusSign);
+        } else if (curLevel != 1) {
+            switch (curLevel % 4) {
+                case 1: {
+                    virusSign = new AdvSprite(game.atlas.createSprite("virus", 11), 0f, 0f, 0.1f * game.width, 0.1f * game.width);
+                    stage.addActor(virusSign);
+                    break;
+                }
+                case 2: {
+                    lymphSign = new AdvSprite(game.atlas.createSprite("lymphocytes"), 0f, 0f, 0.1f * game.width, 0.1f * game.width);
+                    playerSign = new AdvSprite(game.atlas.createSprite("white"), 0f, 0f, 0.1f * game.width, 0.1f * game.width);
 
-        stage.addActor(lymphSign);
-        stage.addActor(playerSign);
+                    stage.addActor(lymphSign);
+                    stage.addActor(playerSign);
+                    break;
+                }
+                case 3: {
+                    redCellSign = new AdvSprite(game.atlas.createSprite("red"), 0f, 0f, 0.1f * game.width, 0.1f * game.width);
+                    redCellSign.setColor(Color.GRAY);
+                    stage.addActor(redCellSign);
+                    break;
+                }
+                case 0: {
+                    lAndPSign = new AdvSprite(game.atlas.createSprite("lymphocytes_and_player"), 0f, 0f, 0.1f * game.width, 0.1f * game.width);
+                    stage.addActor(lAndPSign);
+                    break;
+                }
+            }
+        }
+
         stage.addActor(map);
         stage.addActor(point);
     }
@@ -502,91 +538,219 @@ class Space implements Screen, GestureListener {
         );
         point.updateSprite();
 
-        playerSign.setPosition(
-                0.1f*meter,
-                map.getY() - 0.125f*game.width
-        );
-        playerSign.addAction(Actions.rotateBy(1f));
-        playerSign.updateSprite();
-        lymphSign.setPosition(
-                0.1f*meter,
-                map.getY() - 0.25f*game.width
-        );
-        lymphSign.addAction(Actions.rotateBy(1f));
-        lymphSign.updateSprite();
+        if (curLevel == 4) {
 
-        if (redCells.size() > redCellPoints.size()) {
-            AdvSprite redCellP = new AdvSprite(game.atlas.createSprite("map_point"), 0f, 0f, 0.015f * game.width, 0.015f * game.width);
-            redCellP.setColor(Color.SCARLET);
-            redCellPoints.add(redCellP);
-            stage.addActor(redCellPoints.get(redCellPoints.size() - 1));
-        } else if (redCells.size() < redCellPoints.size()) {
-            redCellPoints.getFirst().remove();
-            redCellPoints.removeFirst();
+            lAndPSign.setPosition(
+                    0.1f * meter,
+                    map.getY() - 0.125f * game.width
+            );
+            lAndPSign.addAction(Actions.rotateBy(1f));
+            lAndPSign.updateSprite();
+
+        }else if (curLevel == 3) {
+
+            redCellSign.setPosition(
+                    0.1f * meter,
+                    map.getY() - 0.125f * game.width
+            );
+            redCellSign.addAction(Actions.rotateBy(1f));
+            redCellSign.updateSprite();
+
+            if (redCells.size() > redCellPoints.size()) {
+                AdvSprite redCellP = new AdvSprite(game.atlas.createSprite("map_point"), 0f, 0f, 0.015f * game.width, 0.015f * game.width);
+                redCellP.setColor(Color.SALMON);
+                redCellPoints.add(redCellP);
+                stage.addActor(redCellPoints.get(redCellPoints.size() - 1));
+            } else if (redCells.size() < redCellPoints.size()) {
+                redCellPoints.getFirst().remove();
+                redCellPoints.removeFirst();
+            }
+            int rIterator = 0;
+            for (Entity l : redCells) {
+                if (rIterator < redCellPoints.size()) {
+                    redCellPoints.get(rIterator).setPosition(
+                            (0.1f * meter + (map.getWidth() / 16f)) - ((80f - l.getPosition().x) / 90f - 1f) * (map.getWidth() * 13f / 16f) + 0.25f * redCellPoints.get(rIterator).getWidth(),
+                            (spec.get().viewportHeight * meter - point.getHeight() - 0.1f * meter) - ((80f - l.getPosition().y) / 90f) * (map.getWidth() * 13f / 16f) - 0.5f * redCellPoints.get(rIterator).getHeight()
+                    );
+                    redCellPoints.get(rIterator).updateSprite();
+                    rIterator++;
+                }
+            }
+            //
+            if (thrombocytes.size() > thrombPoints.size()) {
+                AdvSprite redCellP = new AdvSprite(game.atlas.createSprite("map_point"), 0f, 0f, 0.015f * game.width, 0.015f * game.width);
+                redCellP.setColor(Color.YELLOW);
+                thrombPoints.add(redCellP);
+                stage.addActor(thrombPoints.get(thrombPoints.size() - 1));
+            } else if (thrombocytes.size() < thrombPoints.size()) {
+                thrombPoints.getFirst().remove();
+                thrombPoints.removeFirst();
+            }
+            int tIterator = 0;
+            for (Entity l : thrombocytes) {
+                if (tIterator < thrombPoints.size()) {
+                    thrombPoints.get(tIterator).setPosition(
+                            (0.1f * meter + (map.getWidth() / 16f)) - ((80f - l.getPosition().x) / 90f - 1f) * (map.getWidth() * 13f / 16f) + 0.25f * thrombPoints.get(tIterator).getWidth(),
+                            (spec.get().viewportHeight * meter - point.getHeight() - 0.1f * meter) - ((80f - l.getPosition().y) / 90f) * (map.getWidth() * 13f / 16f) - 0.5f * thrombPoints.get(tIterator).getHeight()
+                    );
+                    thrombPoints.get(tIterator).updateSprite();
+                    tIterator++;
+                }
+            }
+
+        } else if (curLevel == 2) {
+            virusSign.setPosition(
+                    0.1f * meter,
+                    map.getY() - 0.125f * game.width
+            );
+            virusSign.addAction(Actions.rotateBy(1f));
+            virusSign.updateSprite();
+
+        } else if (curLevel != 1) {
+            switch (curLevel % 4) {
+                case 1: {
+                    virusSign.setPosition(
+                            0.1f * meter,
+                            map.getY() - 0.125f * game.width
+                    );
+                    virusSign.addAction(Actions.rotateBy(1f));
+                    virusSign.updateSprite();
+                    break;
+                }
+                case 2: {
+                    playerSign.setPosition(
+                            0.1f * meter,
+                            map.getY() - 0.125f * game.width
+                    );
+                    playerSign.addAction(Actions.rotateBy(1f));
+                    playerSign.updateSprite();
+                    lymphSign.setPosition(
+                            0.1f * meter,
+                            map.getY() - 0.25f * game.width
+                    );
+                    lymphSign.addAction(Actions.rotateBy(1f));
+                    lymphSign.updateSprite();
+
+                    if (lymphocytes.size() > lymphPoints.size()) {
+                        AdvSprite lymphP = new AdvSprite(game.atlas.createSprite("map_point"), 0f, 0f, 0.015f * game.width, 0.015f * game.width);
+                        lymphP.setColor(Color.CYAN);
+                        lymphPoints.add(lymphP);
+                        stage.addActor(lymphPoints.get(lymphPoints.size() - 1));
+                    } else if (lymphocytes.size() < lymphPoints.size()) {
+                        lymphPoints.getFirst().remove();
+                        lymphPoints.removeFirst();
+                    }
+                    int lIterator = 0;
+                    for (Entity l : lymphocytes) {
+                        if (lIterator < lymphPoints.size()) {
+                            lymphPoints.get(lIterator).setPosition(
+                                    (0.1f * meter + (map.getWidth() / 16f)) - ((80f - l.getPosition().x) / 90f - 1f) * (map.getWidth() * 13f / 16f) + 0.25f * lymphPoints.get(lIterator).getWidth(),
+                                    (spec.get().viewportHeight * meter - point.getHeight() - 0.1f * meter) - ((80f - l.getPosition().y) / 90f) * (map.getWidth() * 13f / 16f) - 0.5f * lymphPoints.get(lIterator).getHeight()
+                            );
+                            lymphPoints.get(lIterator).updateSprite();
+                            lIterator++;
+                        }
+                    }
+
+                    break;
+                }
+                case 3: {
+                    redCellSign.setPosition(
+                            0.1f * meter,
+                            map.getY() - 0.125f * game.width
+                    );
+                    redCellSign.addAction(Actions.rotateBy(1f));
+                    redCellSign.updateSprite();
+
+                    if (redCells.size() > redCellPoints.size()) {
+                        AdvSprite redCellP = new AdvSprite(game.atlas.createSprite("map_point"), 0f, 0f, 0.015f * game.width, 0.015f * game.width);
+                        redCellP.setColor(Color.SALMON);
+                        redCellPoints.add(redCellP);
+                        stage.addActor(redCellPoints.get(redCellPoints.size() - 1));
+                    } else if (redCells.size() < redCellPoints.size()) {
+                        redCellPoints.getFirst().remove();
+                        redCellPoints.removeFirst();
+                    }
+                    int rIterator = 0;
+                    for (Entity l : redCells) {
+                        if (rIterator < redCellPoints.size()) {
+                            redCellPoints.get(rIterator).setPosition(
+                                    (0.1f * meter + (map.getWidth() / 16f)) - ((80f - l.getPosition().x) / 90f - 1f) * (map.getWidth() * 13f / 16f) + 0.25f * redCellPoints.get(rIterator).getWidth(),
+                                    (spec.get().viewportHeight * meter - point.getHeight() - 0.1f * meter) - ((80f - l.getPosition().y) / 90f) * (map.getWidth() * 13f / 16f) - 0.5f * redCellPoints.get(rIterator).getHeight()
+                            );
+                            redCellPoints.get(rIterator).updateSprite();
+                            rIterator++;
+                        }
+                    }
+                    //
+                    if (thrombocytes.size() > thrombPoints.size()) {
+                        AdvSprite redCellP = new AdvSprite(game.atlas.createSprite("map_point"), 0f, 0f, 0.015f * game.width, 0.015f * game.width);
+                        redCellP.setColor(Color.YELLOW);
+                        thrombPoints.add(redCellP);
+                        stage.addActor(thrombPoints.get(thrombPoints.size() - 1));
+                    } else if (thrombocytes.size() < thrombPoints.size()) {
+                        thrombPoints.getFirst().remove();
+                        thrombPoints.removeFirst();
+                    }
+                    int tIterator = 0;
+                    for (Entity l : thrombocytes) {
+                        if (tIterator < thrombPoints.size()) {
+                            thrombPoints.get(tIterator).setPosition(
+                                    (0.1f * meter + (map.getWidth() / 16f)) - ((80f - l.getPosition().x) / 90f - 1f) * (map.getWidth() * 13f / 16f) + 0.25f * thrombPoints.get(tIterator).getWidth(),
+                                    (spec.get().viewportHeight * meter - point.getHeight() - 0.1f * meter) - ((80f - l.getPosition().y) / 90f) * (map.getWidth() * 13f / 16f) - 0.5f * thrombPoints.get(tIterator).getHeight()
+                            );
+                            thrombPoints.get(tIterator).updateSprite();
+                            tIterator++;
+                        }
+                    }
+
+                    break;
+                }
+                case 0: {
+                    lAndPSign.setPosition(
+                            0.1f * meter,
+                            map.getY() - 0.125f * game.width
+                    );
+                    lAndPSign.addAction(Actions.rotateBy(1f));
+                    lAndPSign.updateSprite();
+
+                    if (lymphocytes.size() > lymphPoints.size()) {
+                        AdvSprite lymphP = new AdvSprite(game.atlas.createSprite("map_point"), 0f, 0f, 0.015f * game.width, 0.015f * game.width);
+                        lymphP.setColor(Color.CYAN);
+                        lymphPoints.add(lymphP);
+                        stage.addActor(lymphPoints.get(lymphPoints.size() - 1));
+                    } else if (lymphocytes.size() < lymphPoints.size()) {
+                        lymphPoints.getFirst().remove();
+                        lymphPoints.removeFirst();
+                    }
+                    int lIterator = 0;
+                    for (Entity l : lymphocytes) {
+                        if (lIterator < lymphPoints.size()) {
+                            lymphPoints.get(lIterator).setPosition(
+                                    (0.1f * meter + (map.getWidth() / 16f)) - ((80f - l.getPosition().x) / 90f - 1f) * (map.getWidth() * 13f / 16f) + 0.25f * lymphPoints.get(lIterator).getWidth(),
+                                    (spec.get().viewportHeight * meter - point.getHeight() - 0.1f * meter) - ((80f - l.getPosition().y) / 90f) * (map.getWidth() * 13f / 16f) - 0.5f * lymphPoints.get(lIterator).getHeight()
+                            );
+                            lymphPoints.get(lIterator).updateSprite();
+                            lIterator++;
+                        }
+                    }
+
+                    break;
+                }
+            }
         }
-        if (lymphocytes.size() > lymphPoints.size()) {
-            AdvSprite lymphP = new AdvSprite(game.atlas.createSprite("map_point"), 0f, 0f, 0.015f * game.width, 0.015f * game.width);
-            lymphP.setColor(Color.CYAN);
-            lymphPoints.add(lymphP);
-            stage.addActor(lymphPoints.get(lymphPoints.size() - 1));
-        } else if (lymphocytes.size() < lymphPoints.size()) {
-            lymphPoints.getFirst().remove();
-            lymphPoints.removeFirst();
-        }
-        if ((viruses.size() + virusesAdv.size() + virusesSupAdv.size()) > virusPoints.size()) {
+
+        if ((viruses.size()) > virusPoints.size()) {
             AdvSprite virusP = new AdvSprite(game.atlas.createSprite("map_point"), 0f, 0f, 0.015f * game.width, 0.015f * game.width);
-            virusP.setColor(Color.OLIVE);
+            virusP.setColor(Color.RED);
             virusPoints.add(virusP);
             stage.addActor(virusPoints.get(virusPoints.size() - 1));
-        } else if ((viruses.size() + virusesAdv.size() + virusesSupAdv.size()) < virusPoints.size()) {
+        } else if ((viruses.size()) < virusPoints.size()) {
             virusPoints.getFirst().remove();
             virusPoints.removeFirst();
         }
-
-        int rIterator = 0;
-        int lIterator = 0;
         int vIterator = 0;
-        for (Entity r : redCells) {
-            if (rIterator < redCellPoints.size()) {
-                redCellPoints.get(rIterator).setPosition(
-                        (0.1f * meter + (map.getWidth() / 16f)) - ((80f - r.getPosition().x) / 90f - 1f) * (map.getWidth() * 13f / 16f) + 0.25f * redCellPoints.get(rIterator).getWidth(),
-                        (spec.get().viewportHeight * meter - point.getHeight() - 0.1f * meter) - ((80f - r.getPosition().y) / 90f) * (map.getWidth() * 13f / 16f) - 0.5f * redCellPoints.get(rIterator).getHeight()
-                );
-                redCellPoints.get(rIterator).updateSprite();
-                rIterator++;
-            }
-        }
-        for (Entity l : lymphocytes) {
-            if (lIterator < lymphPoints.size()) {
-                lymphPoints.get(lIterator).setPosition(
-                        (0.1f * meter + (map.getWidth() / 16f)) - ((80f - l.getPosition().x) / 90f - 1f) * (map.getWidth() * 13f / 16f) + 0.25f * lymphPoints.get(lIterator).getWidth(),
-                        (spec.get().viewportHeight * meter - point.getHeight() - 0.1f * meter) - ((80f - l.getPosition().y) / 90f) * (map.getWidth() * 13f / 16f) - 0.5f * lymphPoints.get(lIterator).getHeight()
-                );
-                lymphPoints.get(lIterator).updateSprite();
-                lIterator++;
-            }
-        }
         for (Entity v : viruses) {
-            if (vIterator < virusPoints.size()) {
-                virusPoints.get(vIterator).setPosition(
-                        (0.1f * meter + (map.getWidth() / 16f)) - ((80f - v.getPosition().x) / 90f - 1f) * (map.getWidth() * 13f / 16f) + 0.25f * virusPoints.get(vIterator).getWidth(),
-                        (spec.get().viewportHeight * meter - point.getHeight() - 0.1f * meter) - ((80f - v.getPosition().y) / 90f) * (map.getWidth() * 13f / 16f) - 0.5f * virusPoints.get(vIterator).getHeight()
-                );
-                virusPoints.get(vIterator).updateSprite();
-                vIterator++;
-            }
-        }
-        for (Entity v : virusesAdv) {
-            if (vIterator < virusPoints.size()) {
-                virusPoints.get(vIterator).setPosition(
-                        (0.1f * meter + (map.getWidth() / 16f)) - ((80f - v.getPosition().x) / 90f - 1f) * (map.getWidth() * 13f / 16f) + 0.25f * virusPoints.get(vIterator).getWidth(),
-                        (spec.get().viewportHeight * meter - point.getHeight() - 0.1f * meter) - ((80f - v.getPosition().y) / 90f) * (map.getWidth() * 13f / 16f) - 0.5f * virusPoints.get(vIterator).getHeight()
-                );
-                virusPoints.get(vIterator).updateSprite();
-                vIterator++;
-            }
-        }
-        for (Entity v : virusesSupAdv) {
             if (vIterator < virusPoints.size()) {
                 virusPoints.get(vIterator).setPosition(
                         (0.1f * meter + (map.getWidth() / 16f)) - ((80f - v.getPosition().x) / 90f - 1f) * (map.getWidth() * 13f / 16f) + 0.25f * virusPoints.get(vIterator).getWidth(),
@@ -675,7 +839,7 @@ class Space implements Screen, GestureListener {
         }
     }
 
-    private void spawnRedCell (int hp, Vector2 vec) {
+    private void spawnRedCell (int hp, Vector2 vec, boolean isSick) {
         AdvSprite redEntity = new AdvSprite(game.atlas.createSprite("red"), 0, 0, 1f, 1f);
         Entity redSubject = new Entity(redEntity, world, 0f, 10f, 0.2f, "red_cell");
         RedCell redCell = new RedCell(redSubject, hp);
@@ -691,13 +855,37 @@ class Space implements Screen, GestureListener {
                 Actions.alpha(1f, 1f)
         ));
 
+        if (isSick) {
+            redCell.setColor(Color.GRAY);
+            redCell.setName("red_cell_sick");
+        }
+
         stage.addActor(redCell);
         redCells.addFirst(redCell);
+    }
+    private void spawnThromb (int hp, Vector2 vec) {
+        AdvSprite thrombEnt = new AdvSprite(game.atlas.createSprite("yellow"), 0, 0, 0.5f, 0.5f);
+        Entity thrombSub = new Entity(thrombEnt, world, 0f, 10f, 0.2f, "thrombocyte");
+        RedCell thromb = new RedCell(thrombSub, hp);
+        thromb.getBody().setTransform(vec.x, vec.y, 0f);
+        if (rand.nextInt(2) == 0) thromb.getBody().setAngularVelocity(rand.nextFloat() + 0.1f);
+        else thromb.getBody().setAngularVelocity(-rand.nextFloat() - 0.1f);
+
+        float sizeX = thromb.getWidth(), sizeY = thromb.getHeight();
+        thromb.setSize(0f, 0f);
+        thromb.addAction(Actions.alpha(0f));
+        thromb.addAction(Actions.parallel(
+                Actions.sizeTo(sizeX, sizeY, 1f),
+                Actions.alpha(1f, 1f)
+        ));
+
+        stage.addActor(thromb);
+        thrombocytes.addFirst(thromb);
     }
     private void spawnVirus (int hp, float speed, Vector2 vec, int type) {
         AdvSprite virusEnt;
         Entity virusSub;
-        if (type > 12) {
+        if (type > 14) {
             virusEnt = new AdvSprite(game.atlas.createSprite("virus", type), 0, 0, 2f, 2f);
             virusSub = new Entity(virusEnt, world, 0f, 15f, 0.2f, "virus_super_advanced");
             hp += 300;
@@ -723,70 +911,29 @@ class Space implements Screen, GestureListener {
         ));
 
         stage.addActor(virus);
-        if (type > 12) {
-            virusesSupAdv.addFirst(virus);
-        } else if (type > 9) {
-            virusesAdv.addFirst(virus);
-        } else {
-            viruses.addFirst(virus);
-        }
+        viruses.addFirst(virus);
     }
-    private void spawnLymph (int hp, Vector2 vec) {
-        AdvSprite lymEntity = new AdvSprite(game.atlas.createSprite("blue"), 0, 0, 1f, 1f);
-        Entity lymSubject = new Entity(lymEntity, world, 0f, 8f, 0.2f, "lymphocyte");
-        Lymphocyte lymphocyte = new Lymphocyte(lymSubject, hp);
-        lymphocyte.getBody().setTransform(vec.x, vec.y, 0f);
-        if (rand.nextInt(2) == 0) lymphocyte.getBody().setAngularVelocity(rand.nextFloat() + 0.3f);
-        else lymphocyte.getBody().setAngularVelocity(-rand.nextFloat() - 0.3f);
+    private void spawnLymph (int hp, Vector2 vec, int number) {
+        for (int i = 0; i < number; i++) {
+            AdvSprite lymEntity = new AdvSprite(game.atlas.createSprite("lymphocyte", rand.nextInt(8) + 1), 0, 0, 1f, 1f);
+            Entity lymSubject = new Entity(lymEntity, world, 0f, 8f, 0.2f, "lymphocyte");
+            Lymphocyte lymphocyte = new Lymphocyte(lymSubject, hp);
+            lymphocyte.getBody().setTransform(vec.x, vec.y, 0f);
+            if (rand.nextInt(2) == 0)
+                lymphocyte.getBody().setAngularVelocity(rand.nextFloat() + 0.3f);
+            else lymphocyte.getBody().setAngularVelocity(-rand.nextFloat() - 0.3f);
 
-        float sizeX = lymphocyte.getWidth(), sizeY = lymphocyte.getHeight();
-        lymphocyte.setSize(0f, 0f);
-        lymphocyte.addAction(Actions.alpha(0f));
-        lymphocyte.addAction(Actions.parallel(
-                Actions.sizeTo(sizeX, sizeY, 1f),
-                Actions.alpha(1f, 1f)
-        ));
+            float sizeX = lymphocyte.getWidth(), sizeY = lymphocyte.getHeight();
+            lymphocyte.setSize(0f, 0f);
+            lymphocyte.addAction(Actions.alpha(0f));
+            lymphocyte.addAction(Actions.parallel(
+                    Actions.sizeTo(sizeX, sizeY, 1f),
+                    Actions.alpha(1f, 1f)
+            ));
 
-        stage.addActor(lymphocyte);
-        lymphocytes.addFirst(lymphocyte);
-        //
-        lymEntity = new AdvSprite(game.atlas.createSprite("coral"), 0, 0, 1f, 1f);
-        lymSubject = new Entity(lymEntity, world, 0f, 8f, 0.2f, "lymphocyte");
-        lymphocyte = new Lymphocyte(lymSubject, hp);
-        lymphocyte.getBody().setTransform(vec.x, vec.y, 0f);
-        if (rand.nextInt(2) == 0) lymphocyte.getBody().setAngularVelocity(rand.nextFloat() + 0.3f);
-        else lymphocyte.getBody().setAngularVelocity(-rand.nextFloat() - 0.3f);
-
-        sizeX = lymphocyte.getWidth();
-        sizeY = lymphocyte.getHeight();
-        lymphocyte.setSize(0f, 0f);
-        lymphocyte.addAction(Actions.alpha(0f));
-        lymphocyte.addAction(Actions.parallel(
-                Actions.sizeTo(sizeX, sizeY, 1f),
-                Actions.alpha(1f, 1f)
-        ));
-
-        stage.addActor(lymphocyte);
-        lymphocytes.addFirst(lymphocyte);
-        //
-        lymEntity = new AdvSprite(game.atlas.createSprite("green"), 0, 0, 1f, 1f);
-        lymSubject = new Entity(lymEntity, world, 0f, 8f, 0.2f, "lymphocyte");
-        lymphocyte = new Lymphocyte(lymSubject, hp);
-        lymphocyte.getBody().setTransform(vec.x, vec.y, 0f);
-        if (rand.nextInt(2) == 0) lymphocyte.getBody().setAngularVelocity(rand.nextFloat() + 0.3f);
-        else lymphocyte.getBody().setAngularVelocity(-rand.nextFloat() - 0.3f);
-
-        sizeX = lymphocyte.getWidth();
-        sizeY = lymphocyte.getHeight();
-        lymphocyte.setSize(0f, 0f);
-        lymphocyte.addAction(Actions.alpha(0f));
-        lymphocyte.addAction(Actions.parallel(
-                Actions.sizeTo(sizeX, sizeY, 1f),
-                Actions.alpha(1f, 1f)
-        ));
-
-        stage.addActor(lymphocyte);
-        lymphocytes.addFirst(lymphocyte);
+            stage.addActor(lymphocyte);
+            lymphocytes.addFirst(lymphocyte);
+        }
     }
 
     private void gravity (Body b, float s) {
@@ -805,12 +952,20 @@ class Space implements Screen, GestureListener {
         }
     }
     private void lifeCycle () {
-        idleLevelTest();
+        if (curLevel == 1){
+            idleLevelTrain1();
+        } else if (curLevel == 2) {
+            idleLevelTrain2();
+        } else if (curLevel == 3) {
+            idleLevelTrain3();
+        } else if (curLevel == 4) {
+            idleLevelTrain4();
+        } else {
+            idleLevels();
+        }
         player.updateSprite(spec.get());
         lymphSearch();
         Iterator<Entity> v1 = viruses.iterator();
-        Iterator<Entity> v2 = virusesAdv.iterator();
-        Iterator<Entity> v3 = virusesSupAdv.iterator();
         while (v1.hasNext()) {
             Entity v = v1.next();
             v.updateSprite(spec.get());
@@ -823,36 +978,6 @@ class Space implements Screen, GestureListener {
                 if (!v.hasActions()){
                     v.getWorld().destroyBody(v.getBody());
                     v1.remove();
-                }
-            }
-        }
-        while (v2.hasNext()) {
-            Entity v = v2.next();
-            v.updateSprite(spec.get());
-            v.updateLife();
-            v.decreaseLT();
-            if (v.getLifeTime() <= 0) {
-                if (v.isAlive()) {
-                    v.kill();
-                }
-                if (!v.hasActions()){
-                    v.getWorld().destroyBody(v.getBody());
-                    v2.remove();
-                }
-            }
-        }
-        while (v3.hasNext()) {
-            Entity v = v3.next();
-            v.updateSprite(spec.get());
-            v.updateLife();
-            v.decreaseLT();
-            if (v.getLifeTime() <= 0) {
-                if (v.isAlive()) {
-                    v.kill();
-                }
-                if (!v.hasActions()){
-                    v.getWorld().destroyBody(v.getBody());
-                    v3.remove();
                 }
             }
         }
@@ -869,6 +994,25 @@ class Space implements Screen, GestureListener {
                 if (!r.hasActions()){
                     r.getWorld().destroyBody(r.getBody());
                     redCellI.remove();
+                }
+            }
+        }
+        Iterator<Entity> thrombI = thrombocytes.iterator();
+        while (thrombI.hasNext()) {
+            Entity t = thrombI.next();
+            t.updateSprite(spec.get());
+            if (t.getName().equals("thrombocyte_s"))
+                t.updateLife(player.getPosition().x, player.getPosition().y);
+            else
+                t.updateLife();
+            t.decreaseLT();
+            if (t.getLifeTime() <= 0) {
+                if (t.isAlive()) {
+                    t.kill();
+                }
+                if (!t.hasActions()){
+                    t.getWorld().destroyBody(t.getBody());
+                    thrombI.remove();
                 }
             }
         }
@@ -909,8 +1053,6 @@ class Space implements Screen, GestureListener {
                 float y = lymp.getPosition().y;
                 double minDist = 1000000;
                 Iterator<Entity> virusI = viruses.iterator();
-                Iterator<Entity> virusAdvI = virusesAdv.iterator();
-                Iterator<Entity> virusSupAdvI = virusesSupAdv.iterator();
                 while (virusI.hasNext()) {
                     Entity virus = virusI.next();
                     float tempX = (virus.getPosition().x - lymp.getPosition().x);
@@ -922,70 +1064,283 @@ class Space implements Screen, GestureListener {
                         y = virus.getPosition().y;
                     }
                 }
-                while (virusAdvI.hasNext()) {
-                    Entity virusAdv = virusAdvI.next();
-                    float tempX = (virusAdv.getPosition().x - lymp.getPosition().x);
-                    float tempY = (virusAdv.getPosition().y - lymp.getPosition().y);
-                    double distance = Math.sqrt((double)(tempX * tempX + tempY * tempY));
-                    if (distance < minDist) {
-                        minDist = distance;
-                        x = virusAdv.getPosition().x;
-                        y = virusAdv.getPosition().y;
-                    }
-                }
-                while (virusSupAdvI.hasNext()) {
-                    Entity virusSupAdv = virusSupAdvI.next();
-                    float tempX = (virusSupAdv.getPosition().x - lymp.getPosition().x);
-                    float tempY = (virusSupAdv.getPosition().y - lymp.getPosition().y);
-                    double distance = Math.sqrt((double)(tempX * tempX + tempY * tempY));
-                    if (distance < minDist) {
-                        minDist = distance;
-                        x = virusSupAdv.getPosition().x;
-                        y = virusSupAdv.getPosition().y;
-                    }
-                }
                 lymp.updateLife(x, y);
             }
         }
     }
 
-    private void idleLevelTest () {
-        if (rand.nextInt(100) == 0) spawnVirus(150, rand.nextFloat() / 2f + 0.3f, getRandSpawnLoc(), rand.nextInt(13) + 1);
-        if (rand.nextInt(50) == 0) spawnRedCell(100, getRandSpawnLoc());
+    private void initLevels () {
+        if (curLevel == 4) {
+            timer = 60 * 360;
+            spawnLymph(1000000, getRandSpawnLoc(), 1);
+            score = 5;
+        } else if (curLevel == 3) {
+            for (int i = 0; i < 5; i++) spawnRedCell(1000000, getRandSpawnLoc(), true);
+            timer = 60 * 360;
+            score = 5;
+        } else if (curLevel == 2) {
+            for (int i = 0; i < 5; i++) spawnVirus(150, 1.25f - rand.nextFloat() / 2f, getRandSpawnLoc(), rand.nextInt(17) + 1);
+            timer = 60 * 360;
+        } else if (curLevel != 1) {
+            switch (curLevel % 4) {
+                case 1: {
+                    int number = 5, k = 20, h = 2;
+                    timer = 60 * 45 - (curLevel % 21) * 30;
+                    while (curLevel - k > 0) {
+                        number += 2;
+                        k += 20;
+                        timer += (24 - h);
+                        h += 2;
+                    }
+                    number += (curLevel % 21) / 4;
+                    for (int i = 0; i < number; i++) spawnVirus(1500, 1.25f - rand.nextFloat() / 2f, getRandSpawnLoc(), rand.nextInt(17) + 1);
+                    break;
+                }
+                case 2: {
+                    int number = 1, k = 20;
+                    score = 10;
+                    while (curLevel - k > 0) {
+                        number++;
+                        k += 20;
+                        score += 5;
+                    }
+                    score += (curLevel % 21) / 4;
+                    number += (curLevel % 21) / 4;
+                    spawnLymph(1000000, getRandSpawnLoc(), number);
+                    break;
+                }
+                case 3: {
+                    int k = 20, h = 2;
+                    score = 5;
+                    timer = 60 * 60 - (curLevel % 21) * 30;
+                    while (curLevel - k > 0) {
+                        score += 2;
+                        timer += (30 - h);
+                        k += 20;
+                        h += 2;
+                    }
+                    score += (curLevel % 21) / 4;
+                    for (int i = 0; i < score; i++) spawnRedCell(1000000, getRandSpawnLoc(), true);
+                    break;
+                }
+                case 0: {
+                    int k = 20;
+                    score = 10;
+                    while (curLevel - k > 0) {
+                        k += 20;
+                        score += 5;
+                    }
+                    score += (curLevel % 21) / 4;
+                    break;
+                }
+            }
+        }
+    }
+
+    private void idleLevelTrain1 () {
+        if (rand.nextInt(50) == 0) spawnRedCell(100, getRandSpawnLoc(), false);
+        if (rand.nextInt(75) == 0) spawnThromb(100, getRandSpawnLoc());
+        if (internalTime / 60f > 5f) {
+            isVictory = true;
+            isGameOver = true;
+        }
+    }
+    private void idleLevelTrain2 () {
+        if (rand.nextInt(100) == 0) spawnRedCell(100, getRandSpawnLoc(), false);
+        if (rand.nextInt(100) == 0) spawnThromb(100, getRandSpawnLoc());
+        timer--;
+        if (viruses.size() == 0) {
+            isVictory = true;
+            isGameOver = true;
+        }
+        if (timer < 0) {
+            isGameOver = true;
+        }
+    }
+    private void idleLevelTrain3 () {
+        if (rand.nextInt(100) == 0) spawnThromb(100, getRandSpawnLoc());
+        timer--;
+        if (score <= 0) {
+            isVictory = true;
+            isGameOver = true;
+        }
+        if (timer < 0) {
+            isGameOver = true;
+        }
+    }
+    private void idleLevelTrain4 () {
+        if (rand.nextInt(100) == 0) spawnRedCell(100, getRandSpawnLoc(), false);
+        if (rand.nextInt(100) == 0) spawnThromb(100, getRandSpawnLoc());
+        if (rand.nextInt(75) == 0) spawnVirus(150, 1.25f - rand.nextFloat() / 2f, getRandSpawnLoc(), rand.nextInt(17) + 1);
+        timer--;
+        if (playerScore + lymphScore >= score) {
+            isGameOver = true;
+            isVictory = true;
+        }
+        if (timer < 0) {
+            isGameOver = true;
+        }
+    }
+    private void idleLevels () {
+        switch (curLevel % 4) {
+            case 1: {
+                if (rand.nextInt(100) == 0) spawnRedCell(100, getRandSpawnLoc(), false);
+                if (rand.nextInt(100) == 0) spawnThromb(100, getRandSpawnLoc());
+                timer--;
+                if (viruses.size() == 0) {
+                    isVictory = true;
+                    isGameOver = true;
+                }
+                if (timer < 0) {
+                    isGameOver = true;
+                }
+                break;
+            }
+            case 2: {
+                if (rand.nextInt(100) == 0) spawnRedCell(100, getRandSpawnLoc(), false);
+                if (rand.nextInt(100) == 0) spawnThromb(100, getRandSpawnLoc());
+                if (rand.nextInt(100) == 0) spawnVirus(150, 1.25f - rand.nextFloat() / 2f, getRandSpawnLoc(), rand.nextInt(17) + 1);
+                if (playerScore >= score) {
+                    isGameOver = true;
+                    isVictory = true;
+                }
+                if (lymphScore >= score) {
+                    isGameOver = true;
+                }
+                break;
+            }
+            case 3: {
+                timer--;
+                if (rand.nextInt(100) == 0) spawnThromb(100, getRandSpawnLoc());
+                if (score <= 0) {
+                    isVictory = true;
+                    isGameOver = true;
+                }
+                if (timer < 0) {
+                    isGameOver = true;
+                }
+                break;
+            }
+            case 0: {
+                if (rand.nextInt(100) == 0) spawnRedCell(100, getRandSpawnLoc(), false);
+                if (rand.nextInt(100) == 0) spawnThromb(100, getRandSpawnLoc());
+                if (rand.nextInt(100) == 0) spawnVirus(150, 1.25f - rand.nextFloat() / 2f, getRandSpawnLoc(), rand.nextInt(17) + 1);
+                timer--;
+                if (playerScore + lymphScore >= score) {
+                    isGameOver = true;
+                    isVictory = true;
+                }
+                if (timer < 0) {
+                    isGameOver = true;
+                }
+                break;
+            }
+        }
     }
 
     private void drawText ()  {
         String fps = "FPS: " + Gdx.graphics.getFramesPerSecond();
-        game.fonts.mediumB.draw(
+        game.fonts.smallB.draw(
                 stage.getBatch(),
                 fps,
-                7.9f*meter - game.fonts.mediumB.getWidth(fps),
-                spec.get().viewportHeight * meter - 0.1f*meter - 3f*game.fonts.mediumB.getHeight("A")
+                7.9f*meter - game.fonts.smallB.getWidth(fps),
+                spec.get().viewportHeight * meter - 0.1f*meter - 5f*game.fonts.smallB.getHeight("A")
         );
-        game.fonts.mediumB.draw(
-                stage.getBatch(),
-                "Entities: " + (viruses.size() + virusesAdv.size() + virusesSupAdv.size() + lymphocytes.size() + redCells.size() + 1),
-                7.9f*meter - game.fonts.mediumB.getWidth("Entities: " + (viruses.size() + virusesAdv.size() + virusesSupAdv.size() + lymphocytes.size() + redCells.size() + 1)),
-                spec.get().viewportHeight * meter - 0.1f*meter - 4.5f*game.fonts.mediumB.getHeight("A")
-        );
-        /*game.fonts.mediumB.draw(
-                stage.getBatch(),
-                "Time: " + (end - start) / 1000,
-                7.9f*meter - game.fonts.mediumB.getWidth("Time: " + (end - start) / 1000),
-                spec.get().viewportHeight * meter - 0.1f*meter - 6.0f*game.fonts.mediumB.getHeight("A")
-        );*/
-        game.fonts.mediumB.draw(
-                stage.getBatch(),
-                ": " + playerScore,
-                0.1f*meter + 0.125f*game.width,
-                map.getY() - 0.075f*game.width + 0.5f*game.fonts.mediumB.getHeight("A")
-        );
-        game.fonts.mediumB.draw(
-                stage.getBatch(),
-                ": " + lymphScore,
-                0.1f*meter + 0.125f*game.width,
-                map.getY() - 0.2f*game.width + 0.5f*game.fonts.mediumB.getHeight("A")
-        );
+        if (curLevel == 4) {
+            int sec = (int)(timer/60f);
+            game.fonts.smallB.draw(
+                    stage.getBatch(),
+                    text[0] + ": " + sec + " " + text[1],
+                    0.5f*(game.width - game.fonts.smallB.getWidth(text[0] + ": " + sec + " " + text[1])),
+                    1.25f * game.fonts.smallB.getHeight("A")
+            );
+            game.fonts.smallB.draw(
+                    stage.getBatch(),
+                    ": " + (playerScore + lymphScore) + "/" + score,
+                    0.1f * meter + 0.125f * game.width,
+                    map.getY() - 0.075f * game.width + 0.5f * game.fonts.smallB.getHeight("A")
+            );
+        } else if (curLevel == 2) {
+            int sec = (int)(timer/60f);
+            game.fonts.smallB.draw(
+                    stage.getBatch(),
+                    text[0] + ": " + sec + " " + text[1],
+                    0.5f*(game.width - game.fonts.smallB.getWidth(text[0] + ": " + sec + " " + text[1])),
+                    1.25f * game.fonts.smallB.getHeight("A")
+            );
+            game.fonts.smallB.draw(
+                    stage.getBatch(),
+                    ": " + (viruses.size()),
+                    0.1f*meter + 0.125f*game.width,
+                    map.getY() - 0.075f*game.width + 0.5f*game.fonts.smallB.getHeight("A")
+            );
+        } else if (curLevel != 1) {
+            switch (curLevel % 4) {
+                case 1: {
+                    int sec = (int)(timer/60f);
+                    game.fonts.smallB.draw(
+                            stage.getBatch(),
+                            ": " + (viruses.size()),
+                            0.1f*meter + 0.125f*game.width,
+                            map.getY() - 0.075f*game.width + 0.5f*game.fonts.smallB.getHeight("A")
+                    );
+                    game.fonts.smallB.draw(
+                            stage.getBatch(),
+                            text[0] + ": " + sec + " " + text[1],
+                            0.5f*(game.width - game.fonts.smallB.getWidth(text[0] + ": " + sec + " " + text[1])),
+                            1.25f * game.fonts.smallB.getHeight("A")
+                    );
+                    break;
+                }
+                case 2: {
+                    game.fonts.smallB.draw(
+                            stage.getBatch(),
+                            ": " + playerScore + "/" + score,
+                            0.1f * meter + 0.125f * game.width,
+                            map.getY() - 0.075f * game.width + 0.5f * game.fonts.smallB.getHeight("A")
+                    );
+                    game.fonts.smallB.draw(
+                            stage.getBatch(),
+                            ": " + lymphScore + "/" + score,
+                            0.1f * meter + 0.125f * game.width,
+                            map.getY() - 0.2f * game.width + 0.5f * game.fonts.smallB.getHeight("A")
+                    );
+                    break;
+                }
+                case 3: {
+                    int sec = (int)(timer/60f);
+                    game.fonts.smallB.draw(
+                            stage.getBatch(),
+                            text[0] + ": " + sec + " " + text[1],
+                            0.5f*(game.width - game.fonts.smallB.getWidth(text[0] + ": " + sec + " " + text[1])),
+                            1.25f * game.fonts.smallB.getHeight("A")
+                    );
+                    game.fonts.smallB.draw(
+                            stage.getBatch(),
+                            ": " + score,
+                            0.1f*meter + 0.125f*game.width,
+                            map.getY() - 0.075f*game.width + 0.5f*game.fonts.smallB.getHeight("A")
+                    );
+                    break;
+                }
+                case 0: {
+                    int sec = (int)(timer/60f);
+                    game.fonts.smallB.draw(
+                            stage.getBatch(),
+                            text[0] + ": " + sec + " " + text[1],
+                            0.5f*(game.width - game.fonts.smallB.getWidth(text[0] + ": " + sec + " " + text[1])),
+                            1.25f * game.fonts.smallB.getHeight("A")
+                    );
+                    game.fonts.smallB.draw(
+                            stage.getBatch(),
+                            ": " + (playerScore + lymphScore) + "/" + score,
+                            0.1f * meter + 0.125f * game.width,
+                            map.getY() - 0.075f * game.width + 0.5f * game.fonts.smallB.getHeight("A")
+                    );
+                    break;
+                }
+            }
+        }
     }
 
     private Vector2 getRandSpawnLoc () {
@@ -1037,21 +1392,21 @@ class Space implements Screen, GestureListener {
 
     @Override
     public boolean fling (float velocityX, float velocityY, int button) {
-
-        if (Gdx.app.getType().equals(Application.ApplicationType.Android)) {
-            player.applyForceToTheCentre(
-                    0.5f * velocityX,
-                    -(0.5f * velocityY),
-                    true
-            );
-        } else {
-            player.applyForceToTheCentre(
-                    0.75f * velocityX,
-                    -(0.75f * velocityY),
-                    true
-            );
+        if (!isGameOver) {
+            if (Gdx.app.getType().equals(Application.ApplicationType.Android)) {
+                player.applyForceToTheCentre(
+                        0.5f * velocityX,
+                        -(0.5f * velocityY),
+                        true
+                );
+            } else {
+                player.applyForceToTheCentre(
+                        0.75f * velocityX,
+                        -(0.75f * velocityY),
+                        true
+                );
+            }
         }
-
         return true;
     }
 

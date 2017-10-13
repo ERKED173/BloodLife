@@ -38,7 +38,7 @@ public class Technical implements Screen {
 
         timer += delta;
         if (timer > 4f) {
-            game.setScreen(new Menu(game));
+            game.setScreen(new Menu(game, false));
             dispose();
         }
     }

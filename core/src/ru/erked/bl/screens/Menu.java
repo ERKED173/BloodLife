@@ -11,6 +11,8 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.scenes.scene2d.actions.ParallelAction;
 import com.badlogic.gdx.scenes.scene2d.actions.SequenceAction;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 
 import java.util.LinkedList;
@@ -27,17 +29,26 @@ public class Menu implements Screen {
     private Obfuscation obf;
     private boolean nextStart = false;
     private boolean isAbout = false;
+    private boolean isLevel = false;
 
     private BLButton exit;
     private BLButton start;
     private BLButton about;
+    private BLButton right;
+    private BLButton left;
+    private BLButton[] levels;
+    private int page = 0;
+
+    public static int maxLevel = 1;
+    private int curLevel;
 
     private RandomXS128 rand;
     private LinkedList<AdvSprite> advSprites;
     private AdvSprite logo;
 
-    public Menu (MainBL game) {
+    public Menu (MainBL game, boolean isLevel) {
         this.game = game;
+        this.isLevel = isLevel;
     }
 
     @Override
@@ -70,7 +81,7 @@ public class Menu implements Screen {
             obf.deactivate(1f, delta);
         } else if (nextStart) {
             if (obf.isActive()) {
-                game.setScreen(new Space(game));
+                game.setScreen(new Tutorial(game, curLevel));
                 dispose();
             } else {
                 obf.activate(1f, delta);
@@ -103,10 +114,52 @@ public class Menu implements Screen {
         stage.getBatch().end();
 
         if (isAbout) {
+            for (BLButton b : levels) b.get().setVisible(false);
             start.get().setVisible(false);
             exit.get().setVisible(false);
+            left.get().setVisible(false);
+            right.get().setVisible(false);
+        } else if (isLevel) {
+            for (int i = 0; i < levels.length; i++) levels[i].get().setText((page*20 + (i + 1)) + "");
+            if (page == maxLevel / 20) {
+                for (int i = 0; i < (maxLevel % 20); i++) {
+                    levels[i].get().setColor(Color.WHITE);
+                    levels[i].get().setDisabled(false);
+                }
+                for (int i = (maxLevel % 20); i < levels.length; i++) {
+                    levels[i].get().setColor(Color.GRAY);
+                    levels[i].get().setDisabled(true);
+                }
+            } else if (page < maxLevel / 20) {
+                for (int i = 0; i < levels.length; i++) {
+                    levels[i].get().setColor(Color.WHITE);
+                    levels[i].get().setDisabled(false);
+                }
+            } else {
+                for (int i = 0; i < levels.length; i++) {
+                    levels[i].get().setColor(Color.GRAY);
+                    levels[i].get().setDisabled(true);
+                }
+            }
+            for (int i = 0; i < levels.length; i++) {
+                if (!obf.isActive() && levels[i].get().isChecked()) {
+                    game.sounds.click.play();
+                    levels[i].get().setChecked(false);
+                    curLevel = i + 1;
+                    nextStart = true;
+                }
+            }
+            for (BLButton b : levels) b.get().setVisible(true);
+            about.get().setVisible(false);
+            exit.get().setVisible(false);
+            left.get().setVisible(true);
+            right.get().setVisible(true);
         } else {
+            for (BLButton b : levels) b.get().setVisible(false);
+            left.get().setVisible(false);
+            right.get().setVisible(false);
             start.get().setVisible(true);
+            about.get().setVisible(true);
             exit.get().setVisible(true);
         }
 
@@ -124,22 +177,52 @@ public class Menu implements Screen {
     }
 
     private void buttonInit () {
-        start = new BLButton(
-                game,
-                0.25f*game.width,
-                0.5f*game.height + 0.025f*game.width,
-                0.5f*game.width,
-                game.fonts.large.getFont(),
-                game.textSystem.get("start_button"),
-                1,
-                "start_button"
-        );
+        if (isLevel) {
+            start = new BLButton(
+                    game,
+                    0.725f*game.width,
+                    0.025f*game.width,
+                    0.25f * game.width,
+                    game.fonts.small.getFont(),
+                    game.textSystem.get("back_button"),
+                    1,
+                    "start_button"
+            );
+        } else {
+            start = new BLButton(
+                    game,
+                    0.25f * game.width,
+                    0.5f * game.height + 0.025f * game.width,
+                    0.5f * game.width,
+                    game.fonts.large.getFont(),
+                    game.textSystem.get("start_button"),
+                    1,
+                    "start_button"
+            );
+        }
         start.get().addListener(new ClickListener(){
             @Override
             public void clicked (InputEvent event, float x, float y) {
-                if (!obf.isActive()) {
+                if (!obf.isActive() && !isLevel) {
                     game.sounds.click.play();
-                    nextStart = true;
+                    start.get().setSize(0.25f*game.width, 0.125f*game.width);
+                    start.get().addAction(Actions.moveTo(0.725f*game.width, 0.025f*game.width));
+                    TextButton.TextButtonStyle style = start.get().getStyle();
+                    style.font = game.fonts.small.getFont();
+                    start.get().setStyle(style);
+                    start.get().setText(game.textSystem.get("back_button"));
+                    isLevel = true;
+                    start.get().setChecked(false);
+                } else if (!obf.isActive() && isLevel) {
+                    game.sounds.click.play();
+                    start.get().setSize(0.5f*game.width, 0.25f*game.width);
+                    start.get().addAction(Actions.moveTo(0.25f*game.width, 0.5f*game.height + 0.025f*game.width));
+                    TextButton.TextButtonStyle style = start.get().getStyle();
+                    style.font = game.fonts.large.getFont();
+                    start.get().setStyle(style);
+                    start.get().setText(game.textSystem.get("start_button"));
+                    isLevel = false;
+                    start.get().setChecked(false);
                 } else {
                     start.get().setChecked(false);
                 }
@@ -162,13 +245,21 @@ public class Menu implements Screen {
             public void clicked (InputEvent event, float x, float y) {
                 if (!obf.isActive() && !isAbout) {
                     game.sounds.click.play();
-                    about.get().addAction(Actions.moveTo(0.475f*game.width, 0.025f*game.width));
+                    about.get().setSize(0.25f*game.width, 0.125f*game.width);
+                    about.get().addAction(Actions.moveTo(0.725f*game.width, 0.025f*game.width));
+                    TextButton.TextButtonStyle style = about.get().getStyle();
+                    style.font = game.fonts.small.getFont();
+                    about.get().setStyle(style);
                     about.get().setText(game.textSystem.get("back_button"));
                     isAbout = true;
                     about.get().setChecked(false);
                 } else if (!obf.isActive() && isAbout) {
                     game.sounds.click.play();
+                    about.get().setSize(0.5f*game.width, 0.25f*game.width);
                     about.get().addAction(Actions.moveTo(0.25f*game.width, 0.5f*game.height - 0.275f*game.width));
+                    TextButton.TextButtonStyle style = about.get().getStyle();
+                    style.font = game.fonts.large.getFont();
+                    about.get().setStyle(style);
                     about.get().setText(game.textSystem.get("about_button"));
                     isAbout = false;
                     about.get().setChecked(false);
@@ -200,6 +291,7 @@ public class Menu implements Screen {
                 }
             }
         });
+
         stage.addActor(exit.get());
         logo = new AdvSprite(
                 game.atlas.createSprite("logo"),
@@ -209,6 +301,69 @@ public class Menu implements Screen {
                 0.1875f * game.width
         );
         stage.addActor(logo);
+
+        levels = new BLButton[20];
+        float sizeXY = (0.8f*game.width + 0.4f*game.height) / 10.75f;
+        float edgeMerge = (game.width - (4.75f*sizeXY)) / 2f;
+        for (int i = 0; i < 20; i++) {
+            levels[i] = new BLButton(
+                    game,
+                    edgeMerge + (i % 4)*1.25f*sizeXY,
+                    0.65f*game.height - (i / 4)*1.25f*sizeXY,
+                    sizeXY,
+                    game.fonts.small.getFont(),
+                    (i + 1) + "",
+                    2,
+                    "level_" + (i + 1)
+            );
+            stage.addActor(levels[i].get());
+        }
+        left = new BLButton(
+                game,
+                edgeMerge,
+                0.65f*game.height - 5f*1.25f*sizeXY,
+                sizeXY,
+                game.fonts.large.getFont(),
+                "<",
+                2,
+                "left_button"
+        );
+        left.get().addListener(new ClickListener(){
+            @Override
+            public void clicked (InputEvent event, float x, float y) {
+                if (!obf.isActive() && isLevel && page > 0) {
+                    page--;
+                    left.get().setChecked(false);
+                    game.sounds.click.play();
+                } else {
+                    left.get().setChecked(false);
+                }
+            }
+        });
+        stage.addActor(left.get());
+        right = new BLButton(
+                game,
+                game.width - edgeMerge - sizeXY,
+                0.65f*game.height - 5f*1.25f*sizeXY,
+                sizeXY,
+                game.fonts.large.getFont(),
+                ">",
+                2,
+                "right_button"
+        );
+        right.get().addListener(new ClickListener(){
+            @Override
+            public void clicked (InputEvent event, float x, float y) {
+                if (!obf.isActive() && isLevel && page < 9) {
+                    page++;
+                    right.get().setChecked(false);
+                    game.sounds.click.play();
+                } else {
+                    right.get().setChecked(false);
+                }
+            }
+        });
+        stage.addActor(right.get());
     }
 
     private void addPart () {
