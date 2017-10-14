@@ -37,7 +37,7 @@ public class Menu implements Screen {
     private BLButton right;
     private BLButton left;
     private BLButton[] levels;
-    private int page = 0;
+    private static int page = 0;
 
     public static int maxLevel = 1;
     private int curLevel;
@@ -56,6 +56,8 @@ public class Menu implements Screen {
         game.sounds.mainTheme.setLooping(true);
         game.sounds.mainTheme.setVolume(0.25f);
         game.sounds.mainTheme.play();
+
+        maxLevel = game.prefs.getInteger("max_level", 1);
 
         rand = new RandomXS128();
         stage = new Stage();
@@ -82,7 +84,6 @@ public class Menu implements Screen {
         } else if (nextStart) {
             if (obf.isActive()) {
                 game.setScreen(new Tutorial(game, curLevel));
-                dispose();
             } else {
                 obf.activate(1f, delta);
             }
@@ -145,7 +146,7 @@ public class Menu implements Screen {
                 if (!obf.isActive() && levels[i].get().isChecked()) {
                     game.sounds.click.play();
                     levels[i].get().setChecked(false);
-                    curLevel = i + 1;
+                    curLevel = Integer.parseInt(String.valueOf(levels[i].get().getText()));
                     nextStart = true;
                 }
             }
@@ -167,10 +168,14 @@ public class Menu implements Screen {
         stage.draw();
 
         if(Gdx.input.isKeyJustPressed(Input.Keys.BACK)){
+            game.prefs.putInteger("max_level", maxLevel);
+            game.prefs.flush();
             dispose();
             Gdx.app.exit();
         }
         if(Gdx.input.isKeyJustPressed(Input.Keys.HOME)){
+            game.prefs.putInteger("max_level", maxLevel);
+            game.prefs.flush();
             dispose();
             Gdx.app.exit();
         }
@@ -205,6 +210,7 @@ public class Menu implements Screen {
             public void clicked (InputEvent event, float x, float y) {
                 if (!obf.isActive() && !isLevel) {
                     game.sounds.click.play();
+                    page = 0;
                     start.get().setSize(0.25f*game.width, 0.125f*game.width);
                     start.get().addAction(Actions.moveTo(0.725f*game.width, 0.025f*game.width));
                     TextButton.TextButtonStyle style = start.get().getStyle();
@@ -459,6 +465,8 @@ public class Menu implements Screen {
 
     @Override
     public void pause() {
+        game.prefs.putInteger("max_level", maxLevel);
+        game.prefs.flush();
         game.sounds.mainTheme.pause();
         game.sounds.mainTheme.stop();
     }
@@ -470,10 +478,12 @@ public class Menu implements Screen {
 
     @Override
     public void hide() {
-
+        dispose();
     }
 
     @Override
     public void dispose() {
+        game.prefs.putInteger("max_level", maxLevel);
+        game.prefs.flush();
     }
 }

@@ -1,6 +1,7 @@
 package ru.erked.bl;
 
 import com.badlogic.gdx.Game;
+import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 
@@ -16,6 +17,7 @@ public class MainBL extends Game {
 	public BLTextSystem textSystem;
 	public Sounds sounds;
 	public Fonts fonts;
+	public Preferences prefs;
 	public float width;
 	public float height;
 

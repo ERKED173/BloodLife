@@ -26,6 +26,7 @@ public class Technical implements Screen {
         game.textSystem = new BLTextSystem(game.lang);
         game.fonts = new Fonts(game.textSystem.get("FONT_CHARS"));
         game.sounds = new Sounds();
+        game.prefs = Gdx.app.getPreferences("preferences");
 
         game.width = Gdx.graphics.getWidth();
         game.height = Gdx.graphics.getHeight();

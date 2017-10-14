@@ -252,15 +252,15 @@ class Space implements Screen, GestureListener {
         } else if (toMenu) {
             if (obf.isActive()) {
                 game.setScreen(new Menu(game, true));
-                dispose();
             } else {
                 obf.activate(1f, delta);
             }
         } else if (isGameOver) {
             if (obf.isActive()) {
-                if (isVictory) Menu.maxLevel++;
+                if (isVictory && Menu.maxLevel == curLevel){
+                    Menu.maxLevel++;
+                }
                 game.setScreen(new Menu(game, true));
-                dispose();
             } else {
                 obf.activate(4f, delta);
                 if (isVictory) {
@@ -284,10 +284,14 @@ class Space implements Screen, GestureListener {
         stage.getBatch().end();
 
         if(Gdx.input.isKeyJustPressed(Input.Keys.BACK)){
+            game.prefs.putInteger("max_level", Menu.maxLevel);
+            game.prefs.flush();
             dispose();
             Gdx.app.exit();
         }
         if(Gdx.input.isKeyJustPressed(Input.Keys.HOME)){
+            game.prefs.putInteger("max_level", Menu.maxLevel);
+            game.prefs.flush();
             dispose();
             Gdx.app.exit();
         }
@@ -1124,13 +1128,17 @@ class Space implements Screen, GestureListener {
                     break;
                 }
                 case 0: {
-                    int k = 20;
+                    int number = 6, k = 20, h = 2;
                     score = 10;
+                    timer = 60 * 45;
                     while (curLevel - k > 0) {
                         k += 20;
+                        timer += (30 - h);
                         score += 5;
                     }
                     score += (curLevel % 21) / 4;
+                    number -= (curLevel % 21) / 4;
+                    spawnLymph(1000000, getRandSpawnLoc(), number);
                     break;
                 }
             }
@@ -1357,6 +1365,8 @@ class Space implements Screen, GestureListener {
 
     @Override
     public void pause () {
+        game.prefs.putInteger("max_level", Menu.maxLevel);
+        game.prefs.flush();
         game.sounds.mainTheme.pause();
         game.sounds.mainTheme.stop();
     }
@@ -1368,11 +1378,13 @@ class Space implements Screen, GestureListener {
 
     @Override
     public void hide () {
-
+        dispose();
     }
 
     @Override
     public void dispose () {
+        game.prefs.putInteger("max_level", Menu.maxLevel);
+        game.prefs.flush();
     }
 
     @Override

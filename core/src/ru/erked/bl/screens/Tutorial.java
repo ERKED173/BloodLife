@@ -102,8 +102,29 @@ public class Tutorial implements Screen {
         } else if (nextStart) {
             if (obf.isActive()) {
                 game.setScreen(new Space(game, curLevel));
-                dispose();
             } else {
+                if (curLevel > 2) {
+                    switch (curLevel % 4) {
+                        case 1: {
+                            virus.addAction(Actions.alpha(0f, 0.25f));
+                            break;
+                        }
+                        case 2: {
+                            virus.addAction(Actions.alpha(0f, 0.25f));
+                            lymph.addAction(Actions.alpha(0f, 0.25f));
+                            break;
+                        }
+                        case 3: {
+
+                            break;
+                        }
+                        case 0: {
+                            virus.addAction(Actions.alpha(0f, 0.25f));
+                            lymph.addAction(Actions.alpha(0f, 0.25f));
+                            break;
+                        }
+                    }
+                }
                 obf.activate(1f, delta);
             }
         }
@@ -123,10 +144,14 @@ public class Tutorial implements Screen {
         stage.draw();
 
         if(Gdx.input.isKeyJustPressed(Input.Keys.BACK)){
+            game.prefs.putInteger("max_level", Menu.maxLevel);
+            game.prefs.flush();
             dispose();
             Gdx.app.exit();
         }
         if(Gdx.input.isKeyJustPressed(Input.Keys.HOME)){
+            game.prefs.putInteger("max_level", Menu.maxLevel);
+            game.prefs.flush();
             dispose();
             Gdx.app.exit();
         }
@@ -225,7 +250,6 @@ public class Tutorial implements Screen {
         stage.addActor(virus);
         stage.addActor(finger);
     }
-    private void type2Init () {}
 
     private void drawText () {
         if (curLevel == 1) {
@@ -279,22 +303,24 @@ public class Tutorial implements Screen {
         if (!finger.hasActions()) {
             finger.addAction(Actions.sequence(
                     Actions.moveTo(0f, 0.25f*game.height),
-                    Actions.alpha(1f),
+                    Actions.alpha(1f, 0.5f),
                     Actions.moveTo(0.5f*game.width, 0.3f*game.height, 1f),
                     Actions.alpha(0f, 0.5f),
-                    Actions.delay(3.5f)
+                    Actions.delay(4f)
             ));
         }
         finger.updateSprite();
 
         if (!player.hasActions()) {
             player.addAction(Actions.parallel(
-                    Actions.rotateBy(360f, 5f),
+                    Actions.rotateBy(360f, 6f),
                     Actions.sequence(
                             Actions.moveTo(0.05f*game.width, 0.4f*game.height),
+                            Actions.alpha(1f, 0.5f),
                             Actions.delay(1.5f),
                             Actions.moveTo(0.65f*game.width, 0.475f*game.height, 1f),
-                            Actions.delay(2f)
+                            Actions.delay(2f),
+                            Actions.alpha(0f, 1f)
                     )
             ));
         }
@@ -305,12 +331,14 @@ public class Tutorial implements Screen {
             virus = new AdvSprite(game.atlas.createSprite("virus", rand.nextInt(17) + 1), 0.8f*game.width, 0.5f*game.height, 0.15f*game.width, 0.15f*game.width);
             stage.addActor(virus);
             virus.addAction(Actions.parallel(
-                    Actions.rotateBy(360f, 5f),
+                    Actions.rotateBy(360f, 6f),
                     Actions.sequence(
-                            Actions.alpha(1f),
+                            Actions.alpha(1f, 0.5f),
                             Actions.delay(2.5f),
+                            Actions.color(Color.RED),
+                            Actions.color(Color.WHITE, 0.5f),
                             Actions.alpha(0f, 1f),
-                            Actions.delay(1f)
+                            Actions.delay(1.5f)
                     )
             ));
         }
@@ -323,9 +351,6 @@ public class Tutorial implements Screen {
                 0.95f*game.height
         );
     }
-    private void drawType2 () {
-
-    }
 
     private void initGame1 () {
         finger = new AdvSprite(game.atlas.createSprite("finger"), 0f, 0.15f*game.height, 0.5f*game.width, 0.5f*game.width);
@@ -337,8 +362,8 @@ public class Tutorial implements Screen {
         stage.addActor(finger);
     }
     private void initGame2 () {
-        player = new AdvSprite(game.atlas.createSprite("white"), 0.05f*game.width, 0.4f*game.height, 0.15f*game.width, 0.15f*game.width);
-        lymph = new AdvSprite(game.atlas.createSprite("lymphocyte", rand.nextInt(8) + 1), 0.05f*game.width, 0.4f*game.height, 0.15f*game.width, 0.15f*game.width);
+        player = new AdvSprite(game.atlas.createSprite("white"), 0.05f*game.width, 0.7f*game.height, 0.15f*game.width, 0.15f*game.width);
+        lymph = new AdvSprite(game.atlas.createSprite("lymphocyte", rand.nextInt(8) + 1), 0.05f*game.width, 0.3f*game.height, 0.15f*game.width, 0.15f*game.width);
         virus = new AdvSprite(game.atlas.createSprite("virus", rand.nextInt(17) + 1), 0.8f*game.width, 0.5f*game.height, 0.15f*game.width, 0.15f*game.width);
 
         stage.addActor(player);
@@ -346,9 +371,9 @@ public class Tutorial implements Screen {
         stage.addActor(lymph);
     }
     private void initGame3 () {
-        player = new AdvSprite(game.atlas.createSprite("white"), 0.05f*game.width, 0.4f*game.height, 0.15f*game.width, 0.15f*game.width);
-        thromb = new AdvSprite(game.atlas.createSprite("yellow"), 0.05f*game.width, 0.4f*game.height, 0.15f*game.width, 0.15f*game.width);
-        redCell = new AdvSprite(game.atlas.createSprite("red"), 0.05f*game.width, 0.4f*game.height, 0.15f*game.width, 0.15f*game.width);
+        player = new AdvSprite(game.atlas.createSprite("white"), 0.05f*game.width, 0.5f*game.height, 0.15f*game.width, 0.15f*game.width);
+        thromb = new AdvSprite(game.atlas.createSprite("yellow"), 0.8f*game.width, 0.7f*game.height, 0.075f*game.width, 0.075f*game.width);
+        redCell = new AdvSprite(game.atlas.createSprite("red"), 0.8f*game.width, 0.3f*game.height, 0.15f*game.width, 0.15f*game.width);
         redCell.setColor(Color.GRAY);
 
         stage.addActor(player);
@@ -356,8 +381,8 @@ public class Tutorial implements Screen {
         stage.addActor(thromb);
     }
     private void initGame4 () {
-        player = new AdvSprite(game.atlas.createSprite("white"), 0.05f*game.width, 0.4f*game.height, 0.15f*game.width, 0.15f*game.width);
-        lymph = new AdvSprite(game.atlas.createSprite("lymphocyte", rand.nextInt(8) + 1), 0.05f*game.width, 0.4f*game.height, 0.15f*game.width, 0.15f*game.width);
+        player = new AdvSprite(game.atlas.createSprite("white"), 0.05f*game.width, 0.7f*game.height, 0.15f*game.width, 0.15f*game.width);
+        lymph = new AdvSprite(game.atlas.createSprite("lymphocyte", rand.nextInt(8) + 1), 0.05f*game.width, 0.3f*game.height, 0.15f*game.width, 0.15f*game.width);
         virus = new AdvSprite(game.atlas.createSprite("virus", rand.nextInt(17) + 1), 0.8f*game.width, 0.5f*game.height, 0.15f*game.width, 0.15f*game.width);
 
         stage.addActor(player);
@@ -369,22 +394,24 @@ public class Tutorial implements Screen {
         if (!finger.hasActions()) {
             finger.addAction(Actions.sequence(
                     Actions.moveTo(0f, 0.25f*game.height),
-                    Actions.alpha(1f),
+                    Actions.alpha(1f, 0.5f),
                     Actions.moveTo(0.5f*game.width, 0.3f*game.height, 1f),
                     Actions.alpha(0f, 0.5f),
-                    Actions.delay(3.5f)
+                    Actions.delay(4f)
             ));
         }
         finger.updateSprite();
 
         if (!player.hasActions()) {
             player.addAction(Actions.parallel(
-                    Actions.rotateBy(360f, 5f),
+                    Actions.rotateBy(360f, 6f),
                     Actions.sequence(
                             Actions.moveTo(0.05f*game.width, 0.4f*game.height),
+                            Actions.alpha(1f, 0.5f),
                             Actions.delay(1.5f),
                             Actions.moveTo(0.65f*game.width, 0.475f*game.height, 1f),
-                            Actions.delay(2f)
+                            Actions.delay(2f),
+                            Actions.alpha(0f, 1f)
                     )
             ));
         }
@@ -395,12 +422,14 @@ public class Tutorial implements Screen {
             virus = new AdvSprite(game.atlas.createSprite("virus", rand.nextInt(17) + 1), 0.8f*game.width, 0.5f*game.height, 0.15f*game.width, 0.15f*game.width);
             stage.addActor(virus);
             virus.addAction(Actions.parallel(
-                    Actions.rotateBy(360f, 5f),
+                    Actions.rotateBy(360f, 6f),
                     Actions.sequence(
-                            Actions.alpha(1f),
+                            Actions.alpha(1f, 0.5f),
                             Actions.delay(2.5f),
+                            Actions.color(Color.RED),
+                            Actions.color(Color.WHITE, 0.5f),
                             Actions.alpha(0f, 1f),
-                            Actions.delay(1f)
+                            Actions.delay(1.5f)
                     )
             ));
         }
@@ -418,45 +447,157 @@ public class Tutorial implements Screen {
             player.addAction(Actions.parallel(
                     Actions.rotateBy(360f, 5f),
                     Actions.sequence(
-                            Actions.moveTo(0.05f*game.width, 0.5f*game.height),
-                            Actions.moveTo(0.65f*game.width, 0.475f*game.height, 1f),
-                            Actions.delay(2f)
+                            Actions.moveTo(0.05f*game.width, 0.7f*game.height),
+                            Actions.alpha(1f, 0.5f),
+                            Actions.delay(0.5f),
+                            Actions.moveTo(0.65f*game.width, 0.55f*game.height, 1f),
+                            Actions.delay(2f),
+                            Actions.alpha(0f, 1f)
                     )
             ));
         }
-        player.updateSprite();
-        if (!virus.hasActions()) {
-            virus.remove();
-            virus = new AdvSprite(game.atlas.createSprite("virus", rand.nextInt(17) + 1), 0.8f*game.width, 0.5f*game.height, 0.15f*game.width, 0.15f*game.width);
-            stage.addActor(virus);
-            virus.addAction(Actions.parallel(
-                    Actions.rotateBy(360f, 5f),
-                    Actions.sequence(
-                            Actions.alpha(1f),
-                            Actions.delay(1f),
-                            Actions.alpha(0f, 1f),
-                            Actions.delay(2.5f)
-                    )
-            ));
-        }
-        virus.updateSprite();
         if (!lymph.hasActions()) {
             lymph.addAction(Actions.parallel(
                     Actions.rotateBy(360f, 5f),
                     Actions.sequence(
                             Actions.moveTo(0.05f*game.width, 0.3f*game.height),
-                            Actions.moveTo(0.45f*game.width, 0.425f*game.height, 3f),
-                            Actions.delay(1f)
+                            Actions.alpha(1f, 0.5f),
+                            Actions.moveTo(0.65f*game.width, 0.45f*game.height, 3f),
+                            Actions.delay(0.5f),
+                            Actions.alpha(0f, 1f)
                     )
             ));
         }
+        if (!virus.hasActions()) {
+            virus.addAction(Actions.parallel(
+                    Actions.rotateBy(360f, 5f),
+                    Actions.sequence(
+                            Actions.alpha(1f, 0.5f),
+                            Actions.delay(1.5f),
+                            Actions.alpha(0f, 1f),
+                            Actions.delay(2f)
+                    )
+            ));
+        }
+
+        player.updateSprite();
         lymph.updateSprite();
+        virus.updateSprite();
+
+        game.fonts.mediumS.draw(
+                stage.getBatch(),
+                game.textSystem.get("fst"),
+                0.5f*(game.width - game.fonts.mediumS.getWidth(game.textSystem.get("fst"))),
+                0.95f*game.height
+        );
     }
     private void drawGame3 () {
+        if (!player.hasActions()) {
+            player.addAction(Actions.parallel(
+                    Actions.rotateBy(360f, 7f),
+                    Actions.sequence(
+                            Actions.moveTo(0.05f*game.width, 0.5f*game.height),
+                            Actions.alpha(1f, 0.5f),
+                            Actions.delay(1f),
+                            Actions.moveTo(0.65f*game.width, 0.675f*game.height, 1f),
+                            Actions.delay(0.5f),
+                            Actions.moveTo(0.65f*game.width, 0.35f*game.height, 1f),
+                            Actions.delay(2f),
+                            Actions.alpha(0f, 1f)
+                    )
+            ));
+        }
+        if (!thromb.hasActions()) {
+            thromb.addAction(Actions.parallel(
+                    Actions.rotateBy(-360f, 7f),
+                    Actions.sequence(
+                            Actions.moveTo(0.8f*game.width, 0.7f*game.height),
+                            Actions.alpha(1f, 0.5f),
+                            Actions.delay(3f),
+                            Actions.moveTo(0.8f*game.width, 0.4f*game.height, 1f),
+                            Actions.alpha(0f, 1f),
+                            Actions.delay(1.5f)
+                    )
+            ));
+        }
+        if (!redCell.hasActions()) {
+            redCell.addAction(Actions.parallel(
+                    Actions.rotateBy(360f, 7f),
+                    Actions.sequence(
+                            Actions.alpha(1f, 0.5f),
+                            Actions.color(Color.GRAY, 1f),
+                            Actions.delay(2.5f),
+                            Actions.color(Color.WHITE, 1f),
+                            Actions.delay(1f),
+                            Actions.alpha(0f, 1f)
+                    )
+            ));
+        }
 
+        player.updateSprite();
+        thromb.updateSprite();
+        redCell.updateSprite();
+
+        game.fonts.mediumS.draw(
+                stage.getBatch(),
+                game.textSystem.get("rescue"),
+                0.5f*(game.width - game.fonts.mediumS.getWidth(game.textSystem.get("rescue"))),
+                0.95f*game.height
+        );
     }
     private void drawGame4 () {
+        if (!player.hasActions()) {
+            player.addAction(Actions.parallel(
+                    Actions.rotateBy(360f, 5f),
+                    Actions.sequence(
+                            Actions.moveTo(0.05f*game.width, 0.7f*game.height),
+                            Actions.alpha(1f, 0.5f),
+                            Actions.delay(0.5f),
+                            Actions.moveTo(0.65f*game.width, 0.55f*game.height, 1f),
+                            Actions.delay(1.5f),
+                            Actions.alpha(0f, 1f),
+                            Actions.delay(0.5f)
+                    )
+            ));
+        }
+        if (!lymph.hasActions()) {
+            lymph.addAction(Actions.parallel(
+                    Actions.rotateBy(360f, 5f),
+                    Actions.sequence(
+                            Actions.alpha(0f),
+                            Actions.moveTo(0.05f*game.width, 0.3f*game.height),
+                            Actions.alpha(1f, 0.5f),
+                            Actions.delay(0.5f),
+                            Actions.moveTo(0.65f*game.width, 0.45f*game.height, 1f),
+                            Actions.delay(1.5f),
+                            Actions.alpha(0f, 1f),
+                            Actions.delay(0.5f)
+                    )
+            ));
+        }
+        if (!virus.hasActions()) {
+            virus.addAction(Actions.parallel(
+                    Actions.rotateBy(360f, 5f),
+                    Actions.sequence(
+                            Actions.alpha(0f),
+                            Actions.alpha(1f, 0.5f),
+                            Actions.delay(1.5f),
+                            Actions.alpha(0f, 1f),
+                            Actions.delay(2f)
+                    )
+            ));
+        }
 
+        player.updateSprite();
+        lymph.updateSprite();
+        virus.updateSprite();
+
+        game.fonts.mediumS.draw(
+                stage.getBatch(),
+                game.textSystem.get("togh"),
+                0.5f*(game.width - game.fonts.mediumS.getWidth(game.textSystem.get("togh"))),
+                0.95f*game.height
+        );
     }
 
     @Override
@@ -466,6 +607,8 @@ public class Tutorial implements Screen {
 
     @Override
     public void pause() {
+        game.prefs.putInteger("max_level", Menu.maxLevel);
+        game.prefs.flush();
         game.sounds.mainTheme.pause();
         game.sounds.mainTheme.stop();
     }
@@ -477,10 +620,12 @@ public class Tutorial implements Screen {
 
     @Override
     public void hide() {
-
+        dispose();
     }
 
     @Override
     public void dispose() {
+        game.prefs.putInteger("max_level", Menu.maxLevel);
+        game.prefs.flush();
     }
 }
