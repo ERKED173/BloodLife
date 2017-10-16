@@ -5,7 +5,6 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.math.RandomXS128;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
@@ -21,7 +20,7 @@ import ru.erked.bl.systems.BLButton;
 import ru.erked.bl.utils.AdvSprite;
 import ru.erked.bl.utils.Obfuscation;
 
-public class Tutorial implements Screen {
+class Tutorial implements Screen {
 
     private Stage stage;
     private MainBL game;
@@ -33,7 +32,7 @@ public class Tutorial implements Screen {
     private AdvSprite lymph;
     private AdvSprite virus;
     private AdvSprite redCell;
-    private AdvSprite thromb;
+    private AdvSprite platelet;
 
     private BLButton next;
 
@@ -51,7 +50,7 @@ public class Tutorial implements Screen {
     public void show() {
         game.sounds.mainTheme.setLooping(true);
         game.sounds.mainTheme.setVolume(0.25f);
-        game.sounds.mainTheme.play();
+        if (Menu.isSoundOn) game.sounds.mainTheme.play();
 
         rand = new RandomXS128();
         stage = new Stage();
@@ -98,11 +97,14 @@ public class Tutorial implements Screen {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         if(obf.isActive() && !nextStart){
-            obf.deactivate(1f, delta);
+            obf.deactivate(0.5f, delta);
         } else if (nextStart) {
             if (obf.isActive()) {
                 game.setScreen(new Space(game, curLevel));
             } else {
+                if (curLevel == 2) {
+                    virus.addAction(Actions.alpha(0f, 0.25f));
+                }
                 if (curLevel > 2) {
                     switch (curLevel % 4) {
                         case 1: {
@@ -125,7 +127,7 @@ public class Tutorial implements Screen {
                         }
                     }
                 }
-                obf.activate(1f, delta);
+                obf.activate(0.5f, delta);
             }
         }
 
@@ -145,12 +147,14 @@ public class Tutorial implements Screen {
 
         if(Gdx.input.isKeyJustPressed(Input.Keys.BACK)){
             game.prefs.putInteger("max_level", Menu.maxLevel);
+            game.prefs.putBoolean("is_sound_on", Menu.isSoundOn);
             game.prefs.flush();
             dispose();
             Gdx.app.exit();
         }
         if(Gdx.input.isKeyJustPressed(Input.Keys.HOME)){
             game.prefs.putInteger("max_level", Menu.maxLevel);
+            game.prefs.putBoolean("is_sound_on", Menu.isSoundOn);
             game.prefs.flush();
             dispose();
             Gdx.app.exit();
@@ -172,7 +176,7 @@ public class Tutorial implements Screen {
             @Override
             public void clicked (InputEvent event, float x, float y) {
                 if (!obf.isActive()) {
-                    game.sounds.click.play();
+                    if (Menu.isSoundOn) game.sounds.click.play();
                     nextStart = true;
                 } else {
                     next.get().setChecked(false);
@@ -363,7 +367,7 @@ public class Tutorial implements Screen {
     }
     private void initGame2 () {
         player = new AdvSprite(game.atlas.createSprite("white"), 0.05f*game.width, 0.7f*game.height, 0.15f*game.width, 0.15f*game.width);
-        lymph = new AdvSprite(game.atlas.createSprite("lymphocyte", rand.nextInt(8) + 1), 0.05f*game.width, 0.3f*game.height, 0.15f*game.width, 0.15f*game.width);
+        lymph = new AdvSprite(game.atlas.createSprite("lymphocyte", rand.nextInt(7) + 1), 0.05f*game.width, 0.3f*game.height, 0.15f*game.width, 0.15f*game.width);
         virus = new AdvSprite(game.atlas.createSprite("virus", rand.nextInt(17) + 1), 0.8f*game.width, 0.5f*game.height, 0.15f*game.width, 0.15f*game.width);
 
         stage.addActor(player);
@@ -372,17 +376,17 @@ public class Tutorial implements Screen {
     }
     private void initGame3 () {
         player = new AdvSprite(game.atlas.createSprite("white"), 0.05f*game.width, 0.5f*game.height, 0.15f*game.width, 0.15f*game.width);
-        thromb = new AdvSprite(game.atlas.createSprite("yellow"), 0.8f*game.width, 0.7f*game.height, 0.075f*game.width, 0.075f*game.width);
+        platelet = new AdvSprite(game.atlas.createSprite("yellow"), 0.8f*game.width, 0.7f*game.height, 0.075f*game.width, 0.075f*game.width);
         redCell = new AdvSprite(game.atlas.createSprite("red"), 0.8f*game.width, 0.3f*game.height, 0.15f*game.width, 0.15f*game.width);
         redCell.setColor(Color.GRAY);
 
         stage.addActor(player);
         stage.addActor(redCell);
-        stage.addActor(thromb);
+        stage.addActor(platelet);
     }
     private void initGame4 () {
         player = new AdvSprite(game.atlas.createSprite("white"), 0.05f*game.width, 0.7f*game.height, 0.15f*game.width, 0.15f*game.width);
-        lymph = new AdvSprite(game.atlas.createSprite("lymphocyte", rand.nextInt(8) + 1), 0.05f*game.width, 0.3f*game.height, 0.15f*game.width, 0.15f*game.width);
+        lymph = new AdvSprite(game.atlas.createSprite("lymphocyte", rand.nextInt(7) + 1), 0.05f*game.width, 0.3f*game.height, 0.15f*game.width, 0.15f*game.width);
         virus = new AdvSprite(game.atlas.createSprite("virus", rand.nextInt(17) + 1), 0.8f*game.width, 0.5f*game.height, 0.15f*game.width, 0.15f*game.width);
 
         stage.addActor(player);
@@ -451,7 +455,7 @@ public class Tutorial implements Screen {
                             Actions.alpha(1f, 0.5f),
                             Actions.delay(0.5f),
                             Actions.moveTo(0.65f*game.width, 0.55f*game.height, 1f),
-                            Actions.delay(2f),
+                            Actions.delay(1.985f),
                             Actions.alpha(0f, 1f)
                     )
             ));
@@ -475,7 +479,7 @@ public class Tutorial implements Screen {
                             Actions.alpha(1f, 0.5f),
                             Actions.delay(1.5f),
                             Actions.alpha(0f, 1f),
-                            Actions.delay(2f)
+                            Actions.delay(2.0175f)
                     )
             ));
         }
@@ -502,21 +506,22 @@ public class Tutorial implements Screen {
                             Actions.moveTo(0.65f*game.width, 0.675f*game.height, 1f),
                             Actions.delay(0.5f),
                             Actions.moveTo(0.65f*game.width, 0.35f*game.height, 1f),
-                            Actions.delay(2f),
-                            Actions.alpha(0f, 1f)
+                            Actions.delay(1.5f),
+                            Actions.alpha(0f, 1f),
+                            Actions.delay(0.475f)
                     )
             ));
         }
-        if (!thromb.hasActions()) {
-            thromb.addAction(Actions.parallel(
+        if (!platelet.hasActions()) {
+            platelet.addAction(Actions.parallel(
                     Actions.rotateBy(-360f, 7f),
                     Actions.sequence(
                             Actions.moveTo(0.8f*game.width, 0.7f*game.height),
                             Actions.alpha(1f, 0.5f),
-                            Actions.delay(3f),
+                            Actions.delay(2.5f),
                             Actions.moveTo(0.8f*game.width, 0.4f*game.height, 1f),
                             Actions.alpha(0f, 1f),
-                            Actions.delay(1.5f)
+                            Actions.delay(2f)
                     )
             ));
         }
@@ -528,14 +533,15 @@ public class Tutorial implements Screen {
                             Actions.color(Color.GRAY, 1f),
                             Actions.delay(2.5f),
                             Actions.color(Color.WHITE, 1f),
-                            Actions.delay(1f),
-                            Actions.alpha(0f, 1f)
+                            Actions.delay(0.5f),
+                            Actions.alpha(0f, 1f),
+                            Actions.delay(0.5f)
                     )
             ));
         }
 
         player.updateSprite();
-        thromb.updateSprite();
+        platelet.updateSprite();
         redCell.updateSprite();
 
         game.fonts.mediumS.draw(
@@ -571,7 +577,7 @@ public class Tutorial implements Screen {
                             Actions.moveTo(0.65f*game.width, 0.45f*game.height, 1f),
                             Actions.delay(1.5f),
                             Actions.alpha(0f, 1f),
-                            Actions.delay(0.5f)
+                            Actions.delay(0.4675f)
                     )
             ));
         }
@@ -583,7 +589,7 @@ public class Tutorial implements Screen {
                             Actions.alpha(1f, 0.5f),
                             Actions.delay(1.5f),
                             Actions.alpha(0f, 1f),
-                            Actions.delay(2f)
+                            Actions.delay(2.0175f)
                     )
             ));
         }
@@ -608,14 +614,17 @@ public class Tutorial implements Screen {
     @Override
     public void pause() {
         game.prefs.putInteger("max_level", Menu.maxLevel);
+        game.prefs.putBoolean("is_sound_on", Menu.isSoundOn);
         game.prefs.flush();
-        game.sounds.mainTheme.pause();
-        game.sounds.mainTheme.stop();
+        if (game.sounds.mainTheme.isPlaying()) {
+            game.sounds.mainTheme.pause();
+            game.sounds.mainTheme.stop();
+        }
     }
 
     @Override
     public void resume() {
-        if (!game.sounds.mainTheme.isPlaying()) game.sounds.mainTheme.play();
+        if (!game.sounds.mainTheme.isPlaying()) if (Menu.isSoundOn) game.sounds.mainTheme.play();
     }
 
     @Override
@@ -626,6 +635,7 @@ public class Tutorial implements Screen {
     @Override
     public void dispose() {
         game.prefs.putInteger("max_level", Menu.maxLevel);
+        game.prefs.putBoolean("is_sound_on", Menu.isSoundOn);
         game.prefs.flush();
     }
 }

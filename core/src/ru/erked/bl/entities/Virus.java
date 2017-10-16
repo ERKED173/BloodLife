@@ -26,19 +26,4 @@ public class Virus extends Entity {
         }
     }
 
-    @Override
-    public void updateLife(float x, float y) {
-        if (rand.nextInt(10) == 0) {
-            float velX = ((x - getPosition().x) * meter) % 3f * meter;
-            float velY = ((y - getPosition().y) * meter) % 3f * meter;
-            if (Math.abs(velX) < meter) if (velX > 0f) velX = meter; else velX = -meter;
-            if (Math.abs(velY) < meter) if (velY > 0f) velY = meter; else velY = -meter;
-            applyForceToTheCentre(
-                    velX,
-                    velY,
-                    true
-            );
-        }
-    }
-
 }
