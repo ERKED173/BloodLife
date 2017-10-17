@@ -27,6 +27,7 @@ class Menu implements Screen {
     private MainBL game;
     private Obfuscation obf;
     private boolean nextStart = false;
+    private boolean nextRecords = false;
     private boolean isAbout = false;
     private boolean isLevel = false;
 
@@ -36,6 +37,7 @@ class Menu implements Screen {
     private BLButton right;
     private BLButton left;
     private BLButton sound;
+    private BLButton records;
 
     private BLButton cheat;
 
@@ -45,6 +47,8 @@ class Menu implements Screen {
     static boolean isSoundOn = true;
     static int maxLevel = 1;
     private int curLevel;
+
+    private String[] text;
 
     private RandomXS128 rand;
     private LinkedList<AdvSprite> advSprites;
@@ -75,6 +79,13 @@ class Menu implements Screen {
 
         buttonInit();
 
+        text = new String[5];
+        text[0] = game.textSystem.get("devs");
+        text[1] = game.textSystem.get("my_name");
+        text[2] = game.textSystem.get("cnt");
+        text[3] = game.textSystem.get("my_mail");
+        text[4] = game.textSystem.get("versus");
+
         obf = new Obfuscation(game.atlas.createSprite("obfuscation"), true);
         stage.addActor(obf);
     }
@@ -84,11 +95,17 @@ class Menu implements Screen {
         Gdx.gl.glClearColor(220f/255f, 150f/255f, 180f/255f, 0f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        if(obf.isActive() && !nextStart){
+        if(obf.isActive() && !nextStart && !nextRecords){
             obf.deactivate(0.5f, delta);
         } else if (nextStart) {
             if (obf.isActive()) {
                 game.setScreen(new Tutorial(game, curLevel));
+            } else {
+                obf.activate(0.5f, delta);
+            }
+        } else if (nextRecords) {
+            if (obf.isActive()) {
+                game.setScreen(new Records(game));
             } else {
                 obf.activate(0.5f, delta);
             }
@@ -124,6 +141,7 @@ class Menu implements Screen {
             start.get().setVisible(false);
             exit.get().setVisible(false);
             left.get().setVisible(false);
+            records.get().setVisible(false);
             cheat.get().setVisible(false);
             right.get().setVisible(false);
             sound.get().setVisible(true);
@@ -162,11 +180,13 @@ class Menu implements Screen {
             sound.get().setVisible(false);
             exit.get().setVisible(false);
             left.get().setVisible(true);
+            records.get().setVisible(true);
             cheat.get().setVisible(true);
             right.get().setVisible(true);
         } else {
             for (BLButton b : levels) b.get().setVisible(false);
             left.get().setVisible(false);
+            records.get().setVisible(false);
             cheat.get().setVisible(false);
             right.get().setVisible(false);
             sound.get().setVisible(false);
@@ -181,6 +201,13 @@ class Menu implements Screen {
         if(Gdx.input.isKeyJustPressed(Input.Keys.BACK)){
             game.prefs.putInteger("max_level", maxLevel);
             game.prefs.putBoolean("is_sound_on", isSoundOn);
+            game.prefs.flush();
+            dispose();
+            Gdx.app.exit();
+        }
+        if(Gdx.input.isKeyJustPressed(Input.Keys.MENU)){
+            game.prefs.putInteger("max_level", Menu.maxLevel);
+            game.prefs.putBoolean("is_sound_on", Menu.isSoundOn);
             game.prefs.flush();
             dispose();
             Gdx.app.exit();
@@ -423,12 +450,34 @@ class Menu implements Screen {
             }
         });
         stage.addActor(right.get());
+        records = new BLButton(
+                game,
+                0.5f*(game.width - 2f * sizeXY),
+                0.65f*game.height - 5f*1.25f*sizeXY,
+                2f * sizeXY,
+                game.fonts.small.getFont(),
+                game.textSystem.get("rcrds"),
+                1,
+                "records_button"
+        );
+        records.get().addListener(new ClickListener(){
+            @Override
+            public void clicked (InputEvent event, float x, float y) {
+                if (!obf.isActive() && isLevel) {
+                    nextRecords = true;
+                    if (Menu.isSoundOn) game.sounds.click.play();
+                } else {
+                    records.get().setChecked(false);
+                }
+            }
+        });
+        stage.addActor(records.get());
 
         //
         cheat = new BLButton(
                 game,
-                0.5f*(game.width - sizeXY),
-                0.65f*game.height - 5f*1.25f*sizeXY,
+                edgeMerge,
+                0.65f*game.height - 6f*1.25f*sizeXY,
                 sizeXY,
                 game.fonts.large.getFont(),
                 "+",
@@ -506,32 +555,32 @@ class Menu implements Screen {
     private void drawText () {
         game.fonts.largeS.draw(
                 stage.getBatch(),
-                game.textSystem.get("devs"),
-                0.5f * (game.width - game.fonts.largeS.getWidth(game.textSystem.get("devs"))),
+                text[0],
+                0.5f * (game.width - game.fonts.largeS.getWidth(text[0])),
                 0.5f * (game.height + 10.0f*game.fonts.largeS.getWidth("A"))
         );
         game.fonts.largeS.draw(
                 stage.getBatch(),
-                game.textSystem.get("my_name"),
-                0.5f * (game.width - game.fonts.largeS.getWidth(game.textSystem.get("my_name"))),
+                text[1],
+                0.5f * (game.width - game.fonts.largeS.getWidth(text[1])),
                 0.5f * (game.height + 6.0f*game.fonts.largeS.getWidth("A"))
         );
         game.fonts.largeS.draw(
                 stage.getBatch(),
-                game.textSystem.get("cnt"),
-                0.5f * (game.width - game.fonts.largeS.getWidth(game.textSystem.get("cnt"))),
+                text[2],
+                0.5f * (game.width - game.fonts.largeS.getWidth(text[2])),
 
                 0.5f * (game.height - 3.0f*game.fonts.largeS.getWidth("A"))
         );
         game.fonts.largeS.draw(
                 stage.getBatch(),
-                game.textSystem.get("my_mail"),
-                0.5f * (game.width - game.fonts.largeS.getWidth(game.textSystem.get("my_mail"))),
+                text[3],
+                0.5f * (game.width - game.fonts.largeS.getWidth(text[3])),
                 0.5f * (game.height - 7.0f*game.fonts.largeS.getWidth("A"))
         );
         game.fonts.smallS.draw(
                 stage.getBatch(),
-                game.textSystem.get("versus"),
+                text[4],
                 0.005f * game.width,
                 1.25f*game.fonts.smallS.getWidth("A")
         );

@@ -58,9 +58,6 @@ class Space implements Screen, GestureListener {
 
     private World world;
     private ContactListener contactListener;
-    private static final float STEP_TIME = 1f / 60f;
-    private static final int VELOCITY_ITERATIONS = 5;
-    private static final int POSITION_ITERATIONS = 3;
     private float accumulator = 0f;
     private float meter = Technical.METER;
 
@@ -79,13 +76,16 @@ class Space implements Screen, GestureListener {
     private AdvSprite redCellSign;
     private AdvSprite pointer;
 
+    private int score = 0;
     private long timer = 0;
+    private long givenTime = 0;
     private int target = 0;
     private boolean hasPlatelet = false;
 
     private BLButton exit;
     private BLButton pause;
     private AdvSprite pauseObf;
+    private AdvSprite timeLine;
     private boolean isPaused = false;
     private boolean toMenu = false;
 
@@ -170,8 +170,11 @@ class Space implements Screen, GestureListener {
             stage.draw();
 
             accumulator += Math.min(delta, 0.25f);
+            float STEP_TIME = 1f / 60f;
             if (accumulator >= STEP_TIME) {
                 accumulator -= STEP_TIME;
+                int VELOCITY_ITERATIONS = 5;
+                int POSITION_ITERATIONS = 3;
                 world.step(STEP_TIME, VELOCITY_ITERATIONS, POSITION_ITERATIONS);
             }
 
@@ -190,28 +193,32 @@ class Space implements Screen, GestureListener {
                 } else if (curLevel == 2) {
                     virusSign1.draw(stage.getBatch(), 1f);
                 } else if (curLevel != 1) {
-                    switch (curLevel % 4) {
-                        case 1: {
-                            virusSign1.draw(stage.getBatch(), 1f);
-                            break;
-                        }
-                        case 2: {
-                            playerSign.draw(stage.getBatch(), 1f);
-                            lymphSign.draw(stage.getBatch(), 1f);
-                            break;
-                        }
-                        case 3: {
-                            redCellSign.draw(stage.getBatch(), 1f);
-                            break;
-                        }
-                        case 0: {
-                            lAndPSign.draw(stage.getBatch(), 1f);
-                            break;
+                    if (curLevel % 20 != 0) {
+                        switch (curLevel % 4) {
+                            case 1: {
+                                virusSign1.draw(stage.getBatch(), 1f);
+                                break;
+                            }
+                            case 2: {
+                                playerSign.draw(stage.getBatch(), 1f);
+                                lymphSign.draw(stage.getBatch(), 1f);
+                                break;
+                            }
+                            case 3: {
+                                redCellSign.draw(stage.getBatch(), 1f);
+                                break;
+                            }
+                            case 0: {
+                                lAndPSign.draw(stage.getBatch(), 1f);
+                                break;
+                            }
                         }
                     }
                 }
                 pointer.setVisible(true);
                 pointer.draw(stage.getBatch(), pointer.getColor().a);
+                timeLine.setVisible(true);
+                timeLine.draw(stage.getBatch(), 1f);
             } else {
                 pauseObf.draw(stage.getBatch(), 0.5f);
                 game.fonts.largeS.draw(
@@ -222,30 +229,37 @@ class Space implements Screen, GestureListener {
 
                 );
                 pointer.setVisible(false);
+                timeLine.setVisible(false);
                 if (curLevel == 4) {
                     lAndPSign.setVisible(false);
+                    virusSign1.setVisible(false);
                 } else if (curLevel == 3) {
                     redCellSign.setVisible(false);
                 } else if (curLevel == 2) {
                     virusSign1.setVisible(false);
                 } else if (curLevel != 1) {
-                    switch (curLevel % 4) {
-                        case 1: {
-                            virusSign1.setVisible(false);
-                            break;
-                        }
-                        case 2: {
-                            playerSign.setVisible(false);
-                            lymphSign.setVisible(false);
-                            break;
-                        }
-                        case 3: {
-                            redCellSign.setVisible(false);
-                            break;
-                        }
-                        case 0: {
-                            lAndPSign.setVisible(false);
-                            break;
+                    if (curLevel % 20 != 0) {
+                        switch (curLevel % 4) {
+                            case 1: {
+                                virusSign1.setVisible(false);
+                                break;
+                            }
+                            case 2: {
+                                playerSign.setVisible(false);
+                                lymphSign.setVisible(false);
+                                virusSign1.setVisible(false);
+                                virusSign2.setVisible(false);
+                                break;
+                            }
+                            case 3: {
+                                redCellSign.setVisible(false);
+                                break;
+                            }
+                            case 0: {
+                                lAndPSign.setVisible(false);
+                                virusSign1.setVisible(false);
+                                break;
+                            }
                         }
                     }
                 }
@@ -257,32 +271,39 @@ class Space implements Screen, GestureListener {
         } else {
             if (curLevel == 4) {
                 lAndPSign.setVisible(false);
+                virusSign1.setVisible(false);
             } else if (curLevel == 3) {
                 redCellSign.setVisible(false);
             } else if (curLevel == 2) {
                 virusSign1.setVisible(false);
             } else if (curLevel != 1) {
-                switch (curLevel % 4) {
-                    case 1: {
-                        virusSign1.setVisible(false);
-                        break;
-                    }
-                    case 2: {
-                        playerSign.setVisible(false);
-                        lymphSign.setVisible(false);
-                        break;
-                    }
-                    case 3: {
-                        redCellSign.setVisible(false);
-                        break;
-                    }
-                    case 0: {
-                        lAndPSign.setVisible(false);
-                        break;
+                if (curLevel % 20 != 0) {
+                    switch (curLevel % 4) {
+                        case 1: {
+                            virusSign1.setVisible(false);
+                            break;
+                        }
+                        case 2: {
+                            playerSign.setVisible(false);
+                            lymphSign.setVisible(false);
+                            virusSign1.setVisible(false);
+                            virusSign2.setVisible(false);
+                            break;
+                        }
+                        case 3: {
+                            redCellSign.setVisible(false);
+                            break;
+                        }
+                        case 0: {
+                            lAndPSign.setVisible(false);
+                            virusSign1.setVisible(false);
+                            break;
+                        }
                     }
                 }
             }
             pointer.setVisible(false);
+            timeLine.setVisible(false);
             exit.get().setVisible(false);
             pause.get().setVisible(false);
         }
@@ -299,10 +320,13 @@ class Space implements Screen, GestureListener {
             }
         } else if (isGameOver) {
             if (obf.isActive()) {
-                if (isVictory && Menu.maxLevel == curLevel){
-                    Menu.maxLevel++;
+                if (isVictory){
+                    if (Menu.maxLevel == curLevel) Menu.maxLevel++;
+                    score = (int)((score + (timer / 6)) - (score + (timer / 6)) % 10);
+                    game.setScreen(new Results(game, curLevel, score));
+                } else {
+                    game.setScreen(new Menu(game, true));
                 }
-                game.setScreen(new Menu(game, true));
             } else {
                 obf.activate(3f, delta);
                 if (isVictory) {
@@ -326,6 +350,13 @@ class Space implements Screen, GestureListener {
         stage.getBatch().end();
 
         if(Gdx.input.isKeyJustPressed(Input.Keys.BACK)){
+            game.prefs.putInteger("max_level", Menu.maxLevel);
+            game.prefs.putBoolean("is_sound_on", Menu.isSoundOn);
+            game.prefs.flush();
+            dispose();
+            Gdx.app.exit();
+        }
+        if(Gdx.input.isKeyJustPressed(Input.Keys.MENU)){
             game.prefs.putInteger("max_level", Menu.maxLevel);
             game.prefs.putBoolean("is_sound_on", Menu.isSoundOn);
             game.prefs.flush();
@@ -358,9 +389,15 @@ class Space implements Screen, GestureListener {
             @Override
             public void postSolve(Contact contact, ContactImpulse impulse) {
                 if (curLevel % 4 == 2 || curLevel % 4 == 0) lymphVsViruses(contact);
+                if (curLevel % 4 == 3) {
+                    if (!hasPlatelet) playerVsPlatelets(contact);
+                    if (hasPlatelet) playerVsRedCells(contact);
+                }
+                if (curLevel % 20 == 0) {
+                    if (!hasPlatelet) playerVsPlatelets(contact);
+                    if (hasPlatelet) playerVsLymph(contact);
+                }
                 playerVsViruses(contact);
-                if (curLevel % 4 == 3 && !hasPlatelet) playerVsPlatelets(contact);
-                if (curLevel % 4 == 3 && hasPlatelet) playerVsRedCells(contact);
             }
         };
     }
@@ -373,6 +410,16 @@ class Space implements Screen, GestureListener {
                 Entity virus = iVirus.next();
                 if (contact.getFixtureA().getBody().equals(lymph.getBody()) && contact.getFixtureB().getBody().equals(virus.getBody())) {
                     if (lymph.getLifeTime() > 0 && virus.getLifeTime() > 0) {
+                        if (virus.getName().equals("virus_boss")) {
+                            float velX = -2f*(virus.getPosition().x - lymph.getPosition().x);
+                            float velY = -2f*(virus.getPosition().y - lymph.getPosition().y);
+                            lymph.applyLinearImpulse(
+                                    velX,
+                                    velY,
+                                    lymph.getPosition().x,
+                                    lymph.getPosition().y,
+                                    true);
+                        }
                         virus.decreaseLT(50);
                         virus.addAction(Actions.color(Color.RED));
                         virus.addAction(Actions.color(Color.WHITE, 0.5f));
@@ -381,6 +428,16 @@ class Space implements Screen, GestureListener {
                     }
                 } else if (contact.getFixtureB().getBody().equals(lymph.getBody()) && contact.getFixtureA().getBody().equals(virus.getBody())) {
                     if (lymph.getLifeTime() > 0 && virus.getLifeTime() > 0) {
+                        if (virus.getName().equals("virus_boss")) {
+                            float velX = -2f*(virus.getPosition().x - lymph.getPosition().x);
+                            float velY = -2f*(virus.getPosition().y - lymph.getPosition().y);
+                            lymph.applyLinearImpulse(
+                                    velX,
+                                    velY,
+                                    lymph.getPosition().x,
+                                    lymph.getPosition().y,
+                                    true);
+                        }
                         virus.decreaseLT(50);
                         virus.addAction(Actions.color(Color.RED));
                         virus.addAction(Actions.color(Color.WHITE, 0.5f));
@@ -398,6 +455,17 @@ class Space implements Screen, GestureListener {
             Entity virus = iVirus.next();
             if (contact.getFixtureA().getBody().equals(player.getBody()) && contact.getFixtureB().getBody().equals(virus.getBody())) {
                 if (virus.getLifeTime() > 0) {
+                    if (virus.getName().equals("virus_boss")) {
+                        float velX = -2f*(virus.getPosition().x - player.getPosition().x);
+                        float velY = -2f*(virus.getPosition().y - player.getPosition().y);
+                        player.applyLinearImpulse(
+                                velX,
+                                velY,
+                                player.getPosition().x,
+                                player.getPosition().y,
+                                true);
+                    }
+                    score += 10;
                     virus.decreaseLT(60);
                     virus.addAction(Actions.color(Color.RED));
                     virus.addAction(Actions.color(Color.WHITE, 0.5f));
@@ -409,6 +477,17 @@ class Space implements Screen, GestureListener {
                 }
             } else if (contact.getFixtureB().getBody().equals(player.getBody()) && contact.getFixtureA().getBody().equals(virus.getBody())) {
                 if (virus.getLifeTime() > 0) {
+                    if (virus.getName().equals("virus_boss")) {
+                        float velX = -2f*(virus.getPosition().x - player.getPosition().x);
+                        float velY = -2f*(virus.getPosition().y - player.getPosition().y);
+                        player.applyLinearImpulse(
+                                velX,
+                                velY,
+                                player.getPosition().x,
+                                player.getPosition().y,
+                                true);
+                    }
+                    score += 10;
                     virus.decreaseLT(60);
                     virus.addAction(Actions.color(Color.RED));
                     virus.addAction(Actions.color(Color.WHITE, 0.5f));
@@ -427,12 +506,14 @@ class Space implements Screen, GestureListener {
             Entity platelet = iPlat.next();
             if (contact.getFixtureA().getBody().equals(player.getBody()) && contact.getFixtureB().getBody().equals(platelet.getBody())) {
                 if (platelet.getLifeTime() > 0) {
+                    score += 10;
                     platelet.setName("platelet_s");
                     hasPlatelet = true;
                     break;
                 }
             }else if (contact.getFixtureB().getBody().equals(player.getBody()) && contact.getFixtureA().getBody().equals(platelet.getBody())) {
                 if (platelet.getLifeTime() > 0) {
+                    score += 10;
                     platelet.setName("platelet_s");
                     hasPlatelet = true;
                     break;
@@ -448,6 +529,7 @@ class Space implements Screen, GestureListener {
                 if (redCell.getLifeTime() > 0 && redCell.getName().equals("red_cell_sick")) {
                     redCell.addAction(Actions.color(Color.WHITE, 1f));
                     redCell.setName("red_cell");
+                    score += 10;
                     for (int i = 0; i < platelets.size(); i++){
                         if (platelets.get(i).getName().equals("platelet_s"))
                             platelets.get(i).decreaseLT(1000);
@@ -460,11 +542,43 @@ class Space implements Screen, GestureListener {
                 if (redCell.getLifeTime() > 0 && redCell.getName().equals("red_cell_sick")) {
                     redCell.addAction(Actions.color(Color.WHITE, 1f));
                     redCell.setName("red_cell");
+                    score += 10;
                     for (int i = 0; i < platelets.size(); i++) {
                         if (platelets.get(i).getName().equals("platelet_s"))
                             platelets.get(i).decreaseLT(1000);
                     }
                     playerScore++;
+                    hasPlatelet = false;
+                    break;
+                }
+            }
+        }
+    }
+    private void playerVsLymph (Contact contact) {
+        Iterator<Entity> iLymph = lymphocytes.iterator();
+        while (iLymph.hasNext()) {
+            Entity lymph = iLymph.next();
+            if (contact.getFixtureA().getBody().equals(player.getBody()) && contact.getFixtureB().getBody().equals(lymph.getBody())) {
+                if (lymph.getLifeTime() > 0 && lymph.getName().equals("lymphocyte_sick")) {
+                    lymph.addAction(Actions.color(Color.WHITE, 1f));
+                    lymph.setName("lymphocyte");
+                    score += 10;
+                    for (int i = 0; i < platelets.size(); i++){
+                        if (platelets.get(i).getName().equals("platelet_s"))
+                            platelets.get(i).decreaseLT(1000);
+                    }
+                    hasPlatelet = false;
+                    break;
+                }
+            }else if (contact.getFixtureB().getBody().equals(player.getBody()) && contact.getFixtureA().getBody().equals(lymph.getBody())) {
+                if (lymph.getLifeTime() > 0 && lymph.getName().equals("lymphocyte_sick")) {
+                    lymph.addAction(Actions.color(Color.WHITE, 1f));
+                    lymph.setName("lymphocyte");
+                    score += 10;
+                    for (int i = 0; i < platelets.size(); i++){
+                        if (platelets.get(i).getName().equals("platelet_s"))
+                            platelets.get(i).decreaseLT(1000);
+                    }
                     hasPlatelet = false;
                     break;
                 }
@@ -534,11 +648,13 @@ class Space implements Screen, GestureListener {
     }
     private void UIInit () {
         pointer = new AdvSprite(game.atlas.createSprite("pointer"), 0f, 0f, 2f*meter, 2f*meter);
+        timeLine = new AdvSprite(game.atlas.createSprite("particle"), 0f, 0f, game.width, 0.025f*game.height);
+        timeLine.setColor(Color.RED);
         if (curLevel < 5) {
             switch (curLevel) {
                 case 4: {
-                    virusSign1 = new AdvSprite(game.atlas.createSprite("virus", rand.nextInt(18) + 1), 0f, 0f, 0.1f * game.width, 0.1f * game.width);
-                    lAndPSign = new AdvSprite(game.atlas.createSprite("lymphocytes_and_player"), 0f, 0f, 0.025f * game.width, 0.025f * game.width);
+                    virusSign1 = new AdvSprite(game.atlas.createSprite("virus", rand.nextInt(5) + 11), 0f, 0f, 0.1f * game.width, 0.1f * game.width);
+                    lAndPSign = new AdvSprite(game.atlas.createSprite("lymphocytes_and_player"), 0f, 0f, 0.05f * game.width, 0.05f * game.width);
                     stage.addActor(virusSign1);
                     stage.addActor(lAndPSign);
                     break;
@@ -550,7 +666,7 @@ class Space implements Screen, GestureListener {
                     break;
                 }
                 case 2: {
-                    virusSign1 = new AdvSprite(game.atlas.createSprite("virus", rand.nextInt(18) + 1), 0f, 0f, 0.1f * game.width, 0.1f * game.width);
+                    virusSign1 = new AdvSprite(game.atlas.createSprite("virus", rand.nextInt(5) + 11), 0f, 0f, 0.1f * game.width, 0.1f * game.width);
                     stage.addActor(virusSign1);
                     break;
                 }
@@ -563,16 +679,16 @@ class Space implements Screen, GestureListener {
                     break;
                 }
             }
-        } else {
+        } else if (curLevel % 20 != 0) {
             switch (curLevel % 4) {
                 case 1: {
-                    virusSign1 = new AdvSprite(game.atlas.createSprite("virus", rand.nextInt(18) + 1), 0f, 0f, 0.1f * game.width, 0.1f * game.width);
+                    virusSign1 = new AdvSprite(game.atlas.createSprite("virus", rand.nextInt(5) + 11), 0f, 0f, 0.1f * game.width, 0.1f * game.width);
                     stage.addActor(virusSign1);
                     break;
                 }
                 case 2: {
-                    virusSign1 = new AdvSprite(game.atlas.createSprite("virus", rand.nextInt(18) + 1), 0f, 0f, 0.1f * game.width, 0.1f * game.width);
-                    virusSign2 = new AdvSprite(game.atlas.createSprite("virus", rand.nextInt(18) + 1), 0f, 0f, 0.1f * game.width, 0.1f * game.width);
+                    virusSign1 = new AdvSprite(game.atlas.createSprite("virus", rand.nextInt(5) + 11), 0f, 0f, 0.1f * game.width, 0.1f * game.width);
+                    virusSign2 = new AdvSprite(game.atlas.createSprite("virus", rand.nextInt(5) + 11), 0f, 0f, 0.1f * game.width, 0.1f * game.width);
                     lymphSign = new AdvSprite(game.atlas.createSprite("lymphocytes"), 0f, 0f, 0.05f * game.width, 0.05f * game.width);
                     playerSign = new AdvSprite(game.atlas.createSprite("white"), 0f, 0f, 0.05f * game.width, 0.05f * game.width);
 
@@ -590,7 +706,7 @@ class Space implements Screen, GestureListener {
                 }
                 case 0: {
                     lAndPSign = new AdvSprite(game.atlas.createSprite("lymphocytes_and_player"), 0f, 0f, 0.05f * game.width, 0.05f * game.width);
-                    virusSign1 = new AdvSprite(game.atlas.createSprite("virus", rand.nextInt(18) + 1), 0f, 0f, 0.1f * game.width, 0.1f * game.width);
+                    virusSign1 = new AdvSprite(game.atlas.createSprite("virus", rand.nextInt(5) + 11), 0f, 0f, 0.1f * game.width, 0.1f * game.width);
                     stage.addActor(virusSign1);
                     stage.addActor(lAndPSign);
                     break;
@@ -598,6 +714,7 @@ class Space implements Screen, GestureListener {
             }
         }
         stage.addActor(pointer);
+        stage.addActor(timeLine);
     }
     private void UIUpdate () {
         if (curLevel < 5) {
@@ -617,6 +734,12 @@ class Space implements Screen, GestureListener {
                     lAndPSign.updateSprite();
                     pointerUpdateVirus();
                     pointer.updateSprite(spec.get());
+                    if (givenTime != 0) {
+                        timeLine.setSize(game.width*((float)timer/(float)givenTime), timeLine.getHeight());
+                    } else {
+                        timeLine.setSize(0f, timeLine.getHeight());
+                    }
+                    timeLine.updateSprite();
                     break;
                 }
                 case 3: {
@@ -631,6 +754,12 @@ class Space implements Screen, GestureListener {
                     else
                         pointerUpdateRedCell();
                     pointer.updateSprite(spec.get());
+                    if (givenTime != 0) {
+                        timeLine.setSize(game.width*((float)timer/(float)givenTime), timeLine.getHeight());
+                    } else {
+                        timeLine.setSize(0f, timeLine.getHeight());
+                    }
+                    timeLine.updateSprite();
                     break;
                 }
                 case 2: {
@@ -642,15 +771,27 @@ class Space implements Screen, GestureListener {
                     virusSign1.updateSprite();
                     pointerUpdateVirus();
                     pointer.updateSprite(spec.get());
+                    if (givenTime != 0) {
+                        timeLine.setSize(game.width*((float)timer/(float)givenTime), timeLine.getHeight());
+                    } else {
+                        timeLine.setSize(0f, timeLine.getHeight());
+                    }
+                    timeLine.updateSprite();
                     break;
                 }
                 case 1: {
                     pointerUpdateVirus();
                     pointer.updateSprite(spec.get());
+                    if (givenTime != 0) {
+                        timeLine.setSize(game.width*((float)timer/(float)givenTime), timeLine.getHeight());
+                    } else {
+                        timeLine.setSize(0f, timeLine.getHeight());
+                    }
+                    timeLine.updateSprite();
                     break;
                 }
             }
-        } else {
+        } else if (curLevel %  20 != 0) {
             switch (curLevel % 4) {
                 case 1: {
                     virusSign1.setPosition(
@@ -661,6 +802,12 @@ class Space implements Screen, GestureListener {
                     virusSign1.updateSprite();
                     pointerUpdateVirus();
                     pointer.updateSprite(spec.get());
+                    if (givenTime != 0) {
+                        timeLine.setSize(game.width*((float)timer/(float)givenTime), timeLine.getHeight());
+                    } else {
+                        timeLine.setSize(0f, timeLine.getHeight());
+                    }
+                    timeLine.updateSprite();
                     break;
                 }
                 case 2: {
@@ -694,6 +841,12 @@ class Space implements Screen, GestureListener {
 
                     pointerUpdateVirus();
                     pointer.updateSprite(spec.get());
+                    if (givenTime != 0) {
+                        timeLine.setSize(game.width*((float)timer/(float)givenTime), timeLine.getHeight());
+                    } else {
+                        timeLine.setSize(0f, timeLine.getHeight());
+                    }
+                    timeLine.updateSprite();
                     break;
                 }
                 case 3: {
@@ -708,6 +861,12 @@ class Space implements Screen, GestureListener {
                     else
                         pointerUpdateRedCell();
                     pointer.updateSprite(spec.get());
+                    if (givenTime != 0) {
+                        timeLine.setSize(game.width*((float)timer/(float)givenTime), timeLine.getHeight());
+                    } else {
+                        timeLine.setSize(0f, timeLine.getHeight());
+                    }
+                    timeLine.updateSprite();
                     break;
                 }
                 case 0: {
@@ -725,9 +884,33 @@ class Space implements Screen, GestureListener {
                     lAndPSign.updateSprite();
                     pointerUpdateVirus();
                     pointer.updateSprite(spec.get());
+                    if (givenTime != 0) {
+                        timeLine.setSize(game.width*((float)timer/(float)givenTime), timeLine.getHeight());
+                    } else {
+                        timeLine.setSize(0f, timeLine.getHeight());
+                    }
+                    timeLine.updateSprite();
                     break;
                 }
             }
+        } else {
+            boolean hasSickLymph = false;
+            for (Entity e : lymphocytes) if (e.getName().equals("lymphocyte_sick")) hasSickLymph = true;
+            if (hasSickLymph) {
+                if (!hasPlatelet)
+                    pointerUpdatePlat();
+                else
+                    pointerUpdateLymph();
+            } else {
+                pointerUpdateVirus();
+            }
+            pointer.updateSprite(spec.get());
+            if (givenTime != 0) {
+                timeLine.setSize(game.width*((float)timer/(float)givenTime), timeLine.getHeight());
+            } else {
+                timeLine.setSize(0f, timeLine.getHeight());
+            }
+            timeLine.updateSprite();
         }
     }
     private void pointerUpdateVirus () {
@@ -768,7 +951,7 @@ class Space implements Screen, GestureListener {
             }
             pointer.addAction(Actions.rotateTo((float) (angle)));
         } else {
-            pointer.addAction(Actions.rotateTo(0f));
+            pointer.addAction(Actions.rotateBy(5f));
         }
     }
     private void pointerUpdatePlat () {
@@ -808,6 +991,8 @@ class Space implements Screen, GestureListener {
                 angle = (Math.toDegrees(Math.atan(tangent))) + 90f;
             }
             pointer.addAction(Actions.rotateTo((float) (angle)));
+        } else {
+            pointer.addAction(Actions.rotateBy(5f));
         }
     }
     private void pointerUpdateRedCell () {
@@ -849,6 +1034,51 @@ class Space implements Screen, GestureListener {
                 angle = (Math.toDegrees(Math.atan(tangent))) + 90f;
             }
             pointer.addAction(Actions.rotateTo((float) (angle)));
+        } else {
+            pointer.addAction(Actions.rotateBy(5f));
+        }
+    }
+    private void pointerUpdateLymph () {
+        pointer.setPosition(
+                player.getPosition().x * meter - 0.5f * pointer.getWidth(),
+                player.getPosition().y * meter - 0.5f * pointer.getHeight()
+        );
+        if (lymphocytes.size() > 0) {
+            float x = player.getPosition().x;
+            float y = player.getPosition().y + 2f;
+            double minDist = 1000000;
+            Iterator<Entity> lymphI = lymphocytes.iterator();
+            while (lymphI.hasNext()) {
+                Entity lymph = lymphI.next();
+                if (lymph.isAlive()) {
+                    if (lymph.getName().equals("lymphocyte_sick")) {
+                        float tempX = (lymph.getPosition().x - player.getPosition().x);
+                        float tempY = (lymph.getPosition().y - player.getPosition().y);
+                        double distance = Math.sqrt((double) (tempX * tempX + tempY * tempY));
+                        if (distance < minDist) {
+                            minDist = distance;
+                            x = lymph.getPosition().x;
+                            y = lymph.getPosition().y;
+                        }
+                    }
+                }
+            }
+            double angle;
+            double k1 = y - player.getPosition().y;
+            double k2 = x - player.getPosition().x;
+            double tangent = k1 / k2;
+            if (k1 > 0 && k2 > 0) {
+                angle = (Math.toDegrees(Math.atan(tangent))) - 90f;
+            } else if (k1 > 0 && k2 < 0) {
+                angle = (Math.toDegrees(Math.atan(tangent))) + 90f;
+            } else if (k1 < 0 && k2 > 0) {
+                angle = (Math.toDegrees(Math.atan(tangent))) - 90f;
+            } else {
+                angle = (Math.toDegrees(Math.atan(tangent))) + 90f;
+            }
+            pointer.addAction(Actions.rotateTo((float) (angle)));
+        } else {
+            pointer.addAction(Actions.rotateBy(5f));
         }
     }
 
@@ -933,9 +1163,10 @@ class Space implements Screen, GestureListener {
         Entity redSubject = new Entity(redEntity, world, 0f, 10f, 0.2f, "red_cell");
         RedCell redCell = new RedCell(redSubject, hp);
         redCell.getBody().setTransform(vec.x, vec.y, 0f);
-        if (rand.nextInt(2) == 0) redCell.getBody().setAngularVelocity(rand.nextFloat() + 0.1f);
-        else redCell.getBody().setAngularVelocity(-rand.nextFloat() - 0.1f);
-
+        if (rand.nextInt(2) == 0)
+            redCell.getBody().setAngularVelocity(rand.nextFloat() + 0.1f);
+        else
+            redCell.getBody().setAngularVelocity(-rand.nextFloat() - 0.1f);
         float sizeX = redCell.getWidth(), sizeY = redCell.getHeight();
         redCell.setSize(0f, 0f);
         redCell.addAction(Actions.alpha(0f));
@@ -943,12 +1174,10 @@ class Space implements Screen, GestureListener {
                 Actions.sizeTo(sizeX, sizeY, 1f),
                 Actions.alpha(1f, 1f)
         ));
-
         if (isSick) {
             redCell.setColor(Color.GRAY);
             redCell.setName("red_cell_sick");
         }
-
         stage.addActor(redCell);
         redCells.addFirst(redCell);
     }
@@ -957,9 +1186,10 @@ class Space implements Screen, GestureListener {
         Entity platSub = new Entity(platEnt, world, 0f, 3f, 0.2f, "platelet");
         Platelet platelet = new Platelet(platSub, hp);
         platelet.getBody().setTransform(vec.x, vec.y, 0f);
-        if (rand.nextInt(2) == 0) platelet.getBody().setAngularVelocity(rand.nextFloat() + 0.1f);
-        else platelet.getBody().setAngularVelocity(-rand.nextFloat() - 0.1f);
-
+        if (rand.nextInt(2) == 0)
+            platelet.getBody().setAngularVelocity(rand.nextFloat() + 0.1f);
+        else
+            platelet.getBody().setAngularVelocity(-rand.nextFloat() - 0.1f);
         float sizeX = platelet.getWidth(), sizeY = platelet.getHeight();
         platelet.setSize(0f, 0f);
         platelet.addAction(Actions.alpha(0f));
@@ -967,14 +1197,16 @@ class Space implements Screen, GestureListener {
                 Actions.sizeTo(sizeX, sizeY, 1f),
                 Actions.alpha(1f, 1f)
         ));
-
         stage.addActor(platelet);
         platelets.addFirst(platelet);
     }
     private void spawnVirus (int hp, float speed, Vector2 vec, int type) {
         AdvSprite virusEnt;
         Entity virusSub;
-        if (type > 15) {
+        if (type > 19) {
+            virusEnt = new AdvSprite(game.atlas.createSprite("virus", type), 0, 0, 8f, 8f);
+            virusSub = new Entity(virusEnt, world, 0f, 30f, 0.2f, "virus_boss");
+        } else if (type > 15) {
             virusEnt = new AdvSprite(game.atlas.createSprite("virus", type), 0, 0, 2f, 2f);
             virusSub = new Entity(virusEnt, world, 0f, 15f, 0.2f, "virus_super_advanced");
             hp += 300;
@@ -990,9 +1222,10 @@ class Space implements Screen, GestureListener {
         }
         Virus virus = new Virus(virusSub, hp, speed);
         virus.getBody().setTransform(vec.x, vec.y, 0f);
-        if (rand.nextInt(2) == 0) virus.getBody().setAngularVelocity(rand.nextFloat() + 1f);
-        else virus.getBody().setAngularVelocity(-rand.nextFloat() - 1f);
-
+        if (rand.nextInt(2) == 0)
+            virus.getBody().setAngularVelocity(rand.nextFloat() + 1f);
+        else
+            virus.getBody().setAngularVelocity(-rand.nextFloat() - 1f);
         float sizeX = virus.getWidth(), sizeY = virus.getHeight();
         virus.setSize(0f, 0f);
         virus.addAction(Actions.alpha(0f));
@@ -1000,31 +1233,31 @@ class Space implements Screen, GestureListener {
                 Actions.sizeTo(sizeX, sizeY, 1f),
                 Actions.alpha(1f, 1f)
         ));
-
         stage.addActor(virus);
         viruses.addFirst(virus);
     }
-    private void spawnLymph (int hp, Vector2 vec, int number) {
-        for (int i = 0; i < number; i++) {
-            AdvSprite lymEntity = new AdvSprite(game.atlas.createSprite("lymphocyte", rand.nextInt(7) + 1), 0, 0, 1f, 1f);
-            Entity lymSubject = new Entity(lymEntity, world, 0f, 8f, 0.2f, "lymphocyte");
-            Lymphocyte lymphocyte = new Lymphocyte(lymSubject, hp);
-            lymphocyte.getBody().setTransform(vec.x, vec.y, 0f);
-            if (rand.nextInt(2) == 0)
-                lymphocyte.getBody().setAngularVelocity(rand.nextFloat() + 0.3f);
-            else lymphocyte.getBody().setAngularVelocity(-rand.nextFloat() - 0.3f);
-
-            float sizeX = lymphocyte.getWidth(), sizeY = lymphocyte.getHeight();
-            lymphocyte.setSize(0f, 0f);
-            lymphocyte.addAction(Actions.alpha(0f));
-            lymphocyte.addAction(Actions.parallel(
-                    Actions.sizeTo(sizeX, sizeY, 1f),
-                    Actions.alpha(1f, 1f)
-            ));
-
-            stage.addActor(lymphocyte);
-            lymphocytes.addFirst(lymphocyte);
+    private void spawnLymph (int hp, Vector2 vec, boolean isSick) {
+        AdvSprite lymEntity = new AdvSprite(game.atlas.createSprite("lymphocyte", rand.nextInt(7) + 1), 0, 0, 1f, 1f);
+        Entity lymSubject = new Entity(lymEntity, world, 0f, 8f, 0.2f, "lymphocyte");
+        Lymphocyte lymphocyte = new Lymphocyte(lymSubject, hp);
+        lymphocyte.getBody().setTransform(vec.x, vec.y, 0f);
+        if (rand.nextInt(2) == 0)
+            lymphocyte.getBody().setAngularVelocity(rand.nextFloat() + 0.3f);
+        else
+            lymphocyte.getBody().setAngularVelocity(-rand.nextFloat() - 0.3f);
+        float sizeX = lymphocyte.getWidth(), sizeY = lymphocyte.getHeight();
+        lymphocyte.setSize(0f, 0f);
+        lymphocyte.addAction(Actions.alpha(0f));
+        lymphocyte.addAction(Actions.parallel(
+                Actions.sizeTo(sizeX, sizeY, 1f),
+                Actions.alpha(1f, 1f)
+        ));
+        if (isSick) {
+            lymphocyte.setName("lymphocyte_sick");
+            lymphocyte.setColor(Color.GRAY);
         }
+        stage.addActor(lymphocyte);
+        lymphocytes.addFirst(lymphocyte);
     }
 
     private void gravity (Body b, float s) {
@@ -1130,7 +1363,6 @@ class Space implements Screen, GestureListener {
                 changePart(partSpec.get(i));
             }
         }
-
         for (int i = 0; i < bounds.size(); i++) {
             bounds.get(i).updateSprite(spec.get());
         }
@@ -1140,7 +1372,7 @@ class Space implements Screen, GestureListener {
         while (lymphI.hasNext()) {
             Entity lymph = lymphI.next();
             lymph.updateSprite(spec.get());
-            if (lymph.isAlive()) {
+            if (lymph.isAlive() && lymph.getName().equals("lymphocyte")) {
                 float x = lymph.getPosition().x;
                 float y = lymph.getPosition().y;
                 double minDist = 1000000;
@@ -1167,6 +1399,7 @@ class Space implements Screen, GestureListener {
     private void initLevelTrain2 () {
         target = 5;
         timer = 60 * 360;
+        givenTime =  60 * 360;
     }
     private void initLevelTrain3 () {
         for (int i = 0; i < 5; i++) {
@@ -1174,11 +1407,13 @@ class Space implements Screen, GestureListener {
             spawnRedCell(1000000, getRandSpawnLoc(), true);
         }
         timer = 60 * 360;
+        givenTime = 60 * 360;
         target = 5;
     }
     private void initLevelTrain4 () {
         timer = 60 * 360;
-        spawnLymph(1000000, getRandSpawnLoc(), 1);
+        givenTime = 60 * 360;
+        spawnLymph(1000000, getRandSpawnLoc(), false);
         target = 5;
     }
     private void initLevels () {
@@ -1201,44 +1436,58 @@ class Space implements Screen, GestureListener {
                   break;
               }
           }
+        } else if (curLevel % 20 == 0) {
+            timer = 60 * 120 - (curLevel % 21) * 60;
+            givenTime = 60 * 120 - (curLevel % 21) * 60;
+            spawnVirus(50000, 0.1f, new Vector2(50f, 50f), curLevel / 20 + 19);
+            for (int i = 0; i < 5; i++) {
+                spawnLymph(1000000, getRandSpawnLoc(), true);
+                spawnPlatelet(100, getRandSpawnLoc());
+                spawnRedCell(100, getRandSpawnLoc(), false);
+            }
         } else {
             switch (curLevel % 4) {
                 case 1: {
+                    for (int i = 0; i < 5; i++) spawnVirus(150, 1f - rand.nextFloat() / 2f, getRandSpawnLoc(), rand.nextInt(19) + 1);
                     int k = 20, h = 2;
                     target = 5;
-                    timer = 60 * 45 - (curLevel % 21) * 30;
+                    timer = 60 * 60 - (curLevel % 21) * 60;
+                    givenTime = 60 * 60 - (curLevel % 21) * 60;
                     while (curLevel - k > 0) {
                         target += 2;
                         k += 20;
-                        timer += (24 - h);
                         h += 2;
                     }
+                    timer += h * 60;
+                    givenTime += h * 60;
                     target += (curLevel % 21) / 4;
                     break;
                 }
                 case 2: {
+                    for (int i = 0; i < 5; i++) spawnVirus(150, 1f - rand.nextFloat() / 2f, getRandSpawnLoc(), rand.nextInt(19) + 1);
                     int number = 1, k = 20;
                     target = 10;
                     while (curLevel - k > 0) {
-                        number++;
                         k += 20;
                         target += 5;
                     }
                     target += (curLevel % 21) / 4;
                     number += (curLevel % 21) / 4;
-                    spawnLymph(1000000, getRandSpawnLoc(), number);
+                    for (int i = 0; i < number; i++) spawnLymph(1000000, getRandSpawnLoc(), false);
                     break;
                 }
                 case 3: {
-                    int k = 20, h = 2;
+                    int k = 20, h = 3;
                     target = 5;
-                    timer = 60 * 60 - (curLevel % 21) * 30;
+                    timer = 60 * 70 - (curLevel % 21) * 60;
+                    givenTime = 60 * 70 - (curLevel % 21) * 60;
                     while (curLevel - k > 0) {
                         target += 2;
-                        timer += (30 - h);
                         k += 20;
-                        h += 2;
+                        h += 3;
                     }
+                    timer += h * 60;
+                    givenTime += h * 60;
                     target += (curLevel % 21) / 4;
                     for (int i = 0; i < 5; i++) {
                         spawnPlatelet(100, getRandSpawnLoc());
@@ -1247,17 +1496,22 @@ class Space implements Screen, GestureListener {
                     break;
                 }
                 case 0: {
+                    for (int i = 0; i < 5; i++) spawnVirus(150, 1f - rand.nextFloat() / 2f, getRandSpawnLoc(), rand.nextInt(19) + 1);
                     int number = 6, k = 20, h = 2;
                     target = 10;
-                    timer = 60 * 45;
+                    timer = 60 * 60;
+                    givenTime = 60 * 60;
                     while (curLevel - k > 0) {
                         k += 20;
-                        timer += (30 - h);
-                        target += 5;
+                        h += 2;
+                        target += 4;
                     }
+                    timer += h * 60;
+                    givenTime += h * 60;
                     target += (curLevel % 21) / 4;
+                    number += curLevel / 20 - 4;
                     number -= (curLevel % 21) / 4;
-                    spawnLymph(1000000, getRandSpawnLoc(), number);
+                    for (int i = 0; i < number; i++) spawnLymph(1000000, getRandSpawnLoc(), false);
                     break;
                 }
             }
@@ -1275,7 +1529,7 @@ class Space implements Screen, GestureListener {
     private void idleLevelTrain2 () {
         if (rand.nextInt(100) == 0) spawnRedCell(100, getRandSpawnLoc(), false);
         if (rand.nextInt(100) == 0) spawnPlatelet(100, getRandSpawnLoc());
-        if (rand.nextInt(150) == 0) spawnVirus(150, 1f - rand.nextFloat() / 2f, getRandSpawnLoc(), rand.nextInt(18) + 1);
+        if (rand.nextInt(150) == 0) spawnVirus(150, 1f - rand.nextFloat() / 2f, getRandSpawnLoc(), rand.nextInt(19) + 1);
         timer--;
         if (playerScore >= target) {
             isVictory = true;
@@ -1300,7 +1554,7 @@ class Space implements Screen, GestureListener {
     private void idleLevelTrain4 () {
         if (rand.nextInt(100) == 0) spawnRedCell(100, getRandSpawnLoc(), false);
         if (rand.nextInt(100) == 0) spawnPlatelet(100, getRandSpawnLoc());
-        if (rand.nextInt(75) == 0) spawnVirus(150, 1f - rand.nextFloat() / 2f, getRandSpawnLoc(), rand.nextInt(18) + 1);
+        if (rand.nextInt(75) == 0) spawnVirus(150, 1f - rand.nextFloat() / 2f, getRandSpawnLoc(), rand.nextInt(19) + 1);
         timer--;
         if (playerScore + lymphScore >= target) {
             isGameOver = true;
@@ -1311,60 +1565,87 @@ class Space implements Screen, GestureListener {
         }
     }
     private void idleLevels () {
-        switch (curLevel % 4) {
-            case 1: {
-                if (rand.nextInt(150) == 0) spawnRedCell(100, getRandSpawnLoc(), false);
-                if (rand.nextInt(150) == 0) spawnPlatelet(100, getRandSpawnLoc());
-                if (rand.nextInt(150) == 0) spawnVirus(150, 1f - rand.nextFloat() / 2f, getRandSpawnLoc(), rand.nextInt(18) + 1);
-                timer--;
-                if (playerScore >= target) {
-                    isVictory = true;
-                    isGameOver = true;
+        if (curLevel % 20 == 0) {
+            if (rand.nextInt(150) == 0) spawnRedCell(100, getRandSpawnLoc(), false);
+            if (rand.nextInt(150) == 0) spawnPlatelet(100, getRandSpawnLoc());
+            boolean isBossKilled = true;
+            float bossX = 0, bossY = 0;
+            for (Entity e : viruses) {
+                if (e.getName().equals("virus_boss")) {
+                    bossX = e.getPosition().x;
+                    bossY = e.getPosition().y;
+                    isBossKilled = false;
+                    break;
                 }
-                if (timer < 0) {
-                    isGameOver = true;
-                }
-                break;
             }
-            case 2: {
-                if (rand.nextInt(150) == 0) spawnRedCell(100, getRandSpawnLoc(), false);
-                if (rand.nextInt(150) == 0) spawnPlatelet(100, getRandSpawnLoc());
-                if (rand.nextInt(150) == 0) spawnVirus(150, 1f - rand.nextFloat() / 2f, getRandSpawnLoc(), rand.nextInt(18) + 1);
-                if (playerScore >= target) {
-                    isGameOver = true;
-                    isVictory = true;
-                }
-                if (lymphScore >= target) {
-                    isGameOver = true;
-                }
-                break;
+            if (isBossKilled) {
+                isVictory = true;
+                isGameOver = true;
             }
-            case 3: {
-                timer--;
-                if (rand.nextInt(100) == 0) spawnPlatelet(100, getRandSpawnLoc());
-                if (rand.nextInt(100) == 0) spawnRedCell(100, getRandSpawnLoc(), true);
-                if (playerScore >= target) {
-                    isVictory = true;
-                    isGameOver = true;
-                }
-                if (timer < 0) {
-                    isGameOver = true;
-                }
-                break;
+            int x = 4 - (rand.nextInt(9));
+            bossX += x;
+            bossY = rand.nextInt(2) == 0 ? bossY + (float)Math.sqrt(16 - x * x) : bossY - (float)Math.sqrt(16 - x * x);
+            if (rand.nextInt(50) == 0) spawnVirus(100, 0f, new Vector2(bossX, bossY), rand.nextInt(10) + 1);
+            timer--;
+            if (timer < 0) {
+                isGameOver = true;
             }
-            case 0: {
-                if (rand.nextInt(150) == 0) spawnRedCell(100, getRandSpawnLoc(), false);
-                if (rand.nextInt(150) == 0) spawnPlatelet(100, getRandSpawnLoc());
-                if (rand.nextInt(150) == 0) spawnVirus(150, 1f - rand.nextFloat() / 2f, getRandSpawnLoc(), rand.nextInt(18) + 1);
-                timer--;
-                if (playerScore + lymphScore >= target) {
-                    isGameOver = true;
-                    isVictory = true;
+        } else {
+            switch (curLevel % 4) {
+                case 1: {
+                    if (rand.nextInt(150) == 0) spawnRedCell(100, getRandSpawnLoc(), false);
+                    if (rand.nextInt(150) == 0) spawnPlatelet(100, getRandSpawnLoc());
+                    if (rand.nextInt(150) == 0) spawnVirus(150, 1f - rand.nextFloat() / 2f, getRandSpawnLoc(), rand.nextInt(19) + 1);
+                    timer--;
+                    if (playerScore >= target) {
+                        isVictory = true;
+                        isGameOver = true;
+                    }
+                    if (timer < 0) {
+                        isGameOver = true;
+                    }
+                    break;
                 }
-                if (timer < 0) {
-                    isGameOver = true;
+                case 2: {
+                    if (rand.nextInt(150) == 0) spawnRedCell(100, getRandSpawnLoc(), false);
+                    if (rand.nextInt(150) == 0) spawnPlatelet(100, getRandSpawnLoc());
+                    if (rand.nextInt(100) == 0) spawnVirus(150, 1f - rand.nextFloat() / 2f, getRandSpawnLoc(), rand.nextInt(19) + 1);
+                    if (playerScore >= target) {
+                        isGameOver = true;
+                        isVictory = true;
+                    }
+                    if (lymphScore >= target) {
+                        isGameOver = true;
+                    }
+                    break;
                 }
-                break;
+                case 3: {
+                    timer--;
+                    if (rand.nextInt(100) == 0) spawnPlatelet(100, getRandSpawnLoc());
+                    if (rand.nextInt(100) == 0) spawnRedCell(100, getRandSpawnLoc(), true);
+                    if (playerScore >= target) {
+                        isVictory = true;
+                        isGameOver = true;
+                    }
+                    if (timer < 0) {
+                        isGameOver = true;
+                    }
+                    break;
+                }
+                case 0: {
+                    if (rand.nextInt(150) == 0) spawnRedCell(100, getRandSpawnLoc(), false);
+                    if (rand.nextInt(150) == 0) spawnPlatelet(100, getRandSpawnLoc());
+                    if (rand.nextInt(100) == 0) spawnVirus(150, 1f - rand.nextFloat() / 2f, getRandSpawnLoc(), rand.nextInt(19) + 1);
+                    timer--;
+                    if (playerScore + lymphScore >= target) {
+                        isGameOver = true;
+                        isVictory = true;
+                    }
+                    if (timer < 0) {
+                        isGameOver = true;
+                    }
+                    break;
+                }
             }
         }
     }
@@ -1378,13 +1659,6 @@ class Space implements Screen, GestureListener {
                 spec.get().viewportHeight * meter - 0.1f*meter - 5f*game.fonts.smallB.getHeight("A")
         );
         if (curLevel == 4) {
-            int sec = (int)(timer/60f);
-            game.fonts.smallB.draw(
-                    stage.getBatch(),
-                    text[0] + ": " + sec + " " + text[1],
-                    0.5f*(game.width - game.fonts.smallB.getWidth(text[0] + ": " + sec + " " + text[1])),
-                    1.25f * game.fonts.smallB.getHeight("A")
-            );
             game.fonts.smallB.draw(
                     stage.getBatch(),
                     ": " + (playerScore + lymphScore) + "/" + target,
@@ -1392,13 +1666,6 @@ class Space implements Screen, GestureListener {
                     game.height - 0.075f * game.width + 0.5f * game.fonts.smallB.getHeight("A")
             );
         } else if (curLevel == 2) {
-            int sec = (int)(timer/60f);
-            game.fonts.smallB.draw(
-                    stage.getBatch(),
-                    text[0] + ": " + sec + " " + text[1],
-                    0.5f*(game.width - game.fonts.smallB.getWidth(text[0] + ": " + sec + " " + text[1])),
-                    1.25f * game.fonts.smallB.getHeight("A")
-            );
             game.fonts.smallB.draw(
                     stage.getBatch(),
                     ": " + (playerScore) + "/" + target,
@@ -1406,69 +1673,50 @@ class Space implements Screen, GestureListener {
                     game.height - 0.075f*game.width + 0.5f*game.fonts.smallB.getHeight("A")
             );
         } else if (curLevel != 1) {
-            switch (curLevel % 4) {
-                case 1: {
-                    int sec = (int)(timer/60f);
-                    game.fonts.smallB.draw(
-                            stage.getBatch(),
-                            ": " + (playerScore) + "/" + target,
-                            0.1f*meter + 0.125f*game.width,
-                            game.height - 0.075f*game.width + 0.5f*game.fonts.smallB.getHeight("A")
-                    );
-                    game.fonts.smallB.draw(
-                            stage.getBatch(),
-                            text[0] + ": " + sec + " " + text[1],
-                            0.5f*(game.width - game.fonts.smallB.getWidth(text[0] + ": " + sec + " " + text[1])),
-                            1.25f * game.fonts.smallB.getHeight("A")
-                    );
-                    break;
-                }
-                case 2: {
-                    game.fonts.smallB.draw(
-                            stage.getBatch(),
-                            ": " + playerScore + "/" + target,
-                            0.1f * meter + 0.125f * game.width,
-                            game.height - 0.075f * game.width + 0.5f * game.fonts.smallB.getHeight("A")
-                    );
-                    game.fonts.smallB.draw(
-                            stage.getBatch(),
-                            ": " + lymphScore + "/" + target,
-                            0.1f * meter + 0.125f * game.width,
-                            game.height - 0.2f * game.width + 0.5f * game.fonts.smallB.getHeight("A")
-                    );
-                    break;
-                }
-                case 3: {
-                    int sec = (int)(timer/60f);
-                    game.fonts.smallB.draw(
-                            stage.getBatch(),
-                            text[0] + ": " + sec + " " + text[1],
-                            0.5f*(game.width - game.fonts.smallB.getWidth(text[0] + ": " + sec + " " + text[1])),
-                            1.25f * game.fonts.smallB.getHeight("A")
-                    );
-                    game.fonts.smallB.draw(
-                            stage.getBatch(),
-                            ": " + playerScore + "/" + target,
-                            0.1f*meter + 0.125f*game.width,
-                            game.height - 0.075f*game.width + 0.5f*game.fonts.smallB.getHeight("A")
-                    );
-                    break;
-                }
-                case 0: {
-                    int sec = (int)(timer/60f);
-                    game.fonts.smallB.draw(
-                            stage.getBatch(),
-                            text[0] + ": " + sec + " " + text[1],
-                            0.5f*(game.width - game.fonts.smallB.getWidth(text[0] + ": " + sec + " " + text[1])),
-                            1.25f * game.fonts.smallB.getHeight("A")
-                    );
-                    game.fonts.smallB.draw(
-                            stage.getBatch(),
-                            ": " + (playerScore + lymphScore) + "/" + target,
-                            0.1f * meter + 0.125f * game.width,
-                            game.height - 0.075f * game.width + 0.5f * game.fonts.smallB.getHeight("A")
-                    );
-                    break;
+            if (curLevel % 20 != 0) {
+                switch (curLevel % 4) {
+                    case 1: {
+                        game.fonts.smallB.draw(
+                                stage.getBatch(),
+                                ": " + (playerScore) + "/" + target,
+                                0.1f * meter + 0.125f * game.width,
+                                game.height - 0.075f * game.width + 0.5f * game.fonts.smallB.getHeight("A")
+                        );
+                        break;
+                    }
+                    case 2: {
+                        game.fonts.smallB.draw(
+                                stage.getBatch(),
+                                ": " + playerScore + "/" + target,
+                                0.1f * meter + 0.125f * game.width,
+                                game.height - 0.075f * game.width + 0.5f * game.fonts.smallB.getHeight("A")
+                        );
+                        game.fonts.smallB.draw(
+                                stage.getBatch(),
+                                ": " + lymphScore + "/" + target,
+                                0.1f * meter + 0.125f * game.width,
+                                game.height - 0.2f * game.width + 0.5f * game.fonts.smallB.getHeight("A")
+                        );
+                        break;
+                    }
+                    case 3: {
+                        game.fonts.smallB.draw(
+                                stage.getBatch(),
+                                ": " + playerScore + "/" + target,
+                                0.1f * meter + 0.125f * game.width,
+                                game.height - 0.075f * game.width + 0.5f * game.fonts.smallB.getHeight("A")
+                        );
+                        break;
+                    }
+                    case 0: {
+                        game.fonts.smallB.draw(
+                                stage.getBatch(),
+                                ": " + (playerScore + lymphScore) + "/" + target,
+                                0.1f * meter + 0.125f * game.width,
+                                game.height - 0.075f * game.width + 0.5f * game.fonts.smallB.getHeight("A")
+                        );
+                        break;
+                    }
                 }
             }
         }

@@ -27,8 +27,8 @@ public class BLTextSystem {
 
     public String get(String key){
         String result = "null";
-        for(int i=0; i < text.length() - key.length(); i++){
-            if(text.substring(i, i + key.length()).equals(key)){
+        for(int i=0; i < text.length() - key.length() - 1; i++){
+            if(text.substring(i, i + key.length() + 1).equals(key + "=")){
                 int j = i + key.length() + 1;
                 while(!text.substring(j, j+1).equals("☺")){
                     j++;
