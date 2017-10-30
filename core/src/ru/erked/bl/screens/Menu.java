@@ -28,6 +28,7 @@ class Menu implements Screen {
     private Obfuscation obf;
     private boolean nextStart = false;
     private boolean nextRecords = false;
+    private boolean nextShop = false;
     private boolean isAbout = false;
     private boolean isLevel = false;
 
@@ -38,15 +39,15 @@ class Menu implements Screen {
     private BLButton left;
     private BLButton sound;
     private BLButton records;
+    private BLButton shop;
 
     private BLButton cheat;
 
     private BLButton[] levels;
     private static int page = 0;
 
-    static boolean isSoundOn = true;
-    static int maxLevel = 1;
     private int curLevel;
+    private AdvSprite[] stars;
 
     private String[] text;
 
@@ -61,12 +62,9 @@ class Menu implements Screen {
 
     @Override
     public void show() {
-        maxLevel = game.prefs.getInteger("max_level", 1);
-        isSoundOn = game.prefs.getBoolean("is_sound_on", true);
-
         game.sounds.mainTheme.setLooping(true);
         game.sounds.mainTheme.setVolume(0.25f);
-        if (isSoundOn) game.sounds.mainTheme.play();
+        if (Technical.isSoundOn) game.sounds.mainTheme.play();
 
         rand = new RandomXS128();
         stage = new Stage();
@@ -78,6 +76,20 @@ class Menu implements Screen {
         }
 
         buttonInit();
+
+        float sizeXY = (0.8f*game.width + 0.4f*game.height) / 10.75f;
+        float edgeMerge = (game.width - (4.75f*sizeXY)) / 2f;
+        stars = new AdvSprite[60];
+        for (int i = 0; i < 60; ++i) {
+            stars[i] = new AdvSprite(
+                    game.atlas.createSprite("star"),
+                    edgeMerge + (i % 3)*0.35f*sizeXY + ((i % 12)/3)*1.25f*sizeXY,
+                    0.64f*game.height - (i / 12)*1.25f*sizeXY,
+                    0.3f * sizeXY,
+                    0.3f * sizeXY
+            );
+            stage.addActor(stars[i]);
+        }
 
         text = new String[5];
         text[0] = game.textSystem.get("devs");
@@ -95,7 +107,7 @@ class Menu implements Screen {
         Gdx.gl.glClearColor(220f/255f, 150f/255f, 180f/255f, 0f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        if(obf.isActive() && !nextStart && !nextRecords){
+        if(obf.isActive() && !nextStart && !nextRecords && !nextShop){
             obf.deactivate(0.5f, delta);
         } else if (nextStart) {
             if (obf.isActive()) {
@@ -106,6 +118,12 @@ class Menu implements Screen {
         } else if (nextRecords) {
             if (obf.isActive()) {
                 game.setScreen(new Records(game));
+            } else {
+                obf.activate(0.5f, delta);
+            }
+        } else if (nextShop) {
+            if (obf.isActive()) {
+                game.setScreen(new Shop(game));
             } else {
                 obf.activate(0.5f, delta);
             }
@@ -138,25 +156,34 @@ class Menu implements Screen {
 
         if (isAbout) {
             for (BLButton b : levels) b.get().setVisible(false);
+            for (AdvSprite s : stars) s.setVisible(false);
             start.get().setVisible(false);
             exit.get().setVisible(false);
             left.get().setVisible(false);
             records.get().setVisible(false);
+            shop.get().setVisible(false);
             cheat.get().setVisible(false);
             right.get().setVisible(false);
             sound.get().setVisible(true);
         } else if (isLevel) {
             for (int i = 0; i < levels.length; i++) levels[i].get().setText((page*20 + (i + 1)) + "");
-            if (page == maxLevel / 20) {
-                for (int i = 0; i < (maxLevel % 20); i++) {
+            for (int i = 0; i < 20; ++i) {
+                for (int j = 0; j < 3; ++j) stars[i * 3 + j].setColor(Color.LIGHT_GRAY);
+                for (int j = 0; j < game.prefs.getInteger("level_star_" + ((i + 1) + 20 * page), 0); ++j) {
+                    stars[i * 3 + j].setColor(Color.YELLOW);
+                }
+            }
+            for (int i = 0; i < 60; ++i) { stars[i].updateSprite(); }
+            if (page == Technical.maxLevel / 20) {
+                for (int i = 0; i < (Technical.maxLevel % 20); i++) {
                     levels[i].get().setColor(Color.WHITE);
                     levels[i].get().setDisabled(false);
                 }
-                for (int i = (maxLevel % 20); i < levels.length; i++) {
+                for (int i = (Technical.maxLevel % 20); i < levels.length; i++) {
                     levels[i].get().setColor(Color.GRAY);
                     levels[i].get().setDisabled(true);
                 }
-            } else if (page < maxLevel / 20) {
+            } else if (page < Technical.maxLevel / 20) {
                 for (BLButton level : levels) {
                     level.get().setColor(Color.WHITE);
                     level.get().setDisabled(false);
@@ -169,24 +196,28 @@ class Menu implements Screen {
             }
             for (BLButton level : levels) {
                 if (!obf.isActive() && level.get().isChecked()) {
-                    if (Menu.isSoundOn) game.sounds.click.play();
+                    if (Technical.isSoundOn) game.sounds.click.play();
                     level.get().setChecked(false);
                     curLevel = Integer.parseInt(String.valueOf(level.get().getText()));
                     nextStart = true;
                 }
             }
             for (BLButton b : levels) b.get().setVisible(true);
+            for (AdvSprite s : stars) s.setVisible(true);
             about.get().setVisible(false);
             sound.get().setVisible(false);
             exit.get().setVisible(false);
             left.get().setVisible(true);
             records.get().setVisible(true);
+            shop.get().setVisible(true);
             cheat.get().setVisible(true);
             right.get().setVisible(true);
         } else {
             for (BLButton b : levels) b.get().setVisible(false);
+            for (AdvSprite s : stars) s.setVisible(false);
             left.get().setVisible(false);
             records.get().setVisible(false);
+            shop.get().setVisible(false);
             cheat.get().setVisible(false);
             right.get().setVisible(false);
             sound.get().setVisible(false);
@@ -199,22 +230,34 @@ class Menu implements Screen {
         stage.draw();
 
         if(Gdx.input.isKeyJustPressed(Input.Keys.BACK)){
-            game.prefs.putInteger("max_level", maxLevel);
-            game.prefs.putBoolean("is_sound_on", isSoundOn);
+            game.prefs.putInteger("max_level", Technical.maxLevel);
+            game.prefs.putInteger("current_skin", Technical.curSkin);
+            game.prefs.putInteger("money", Technical.money);
+            game.prefs.putInteger("time_level", Technical.timeLevel);
+            game.prefs.putInteger("direction_level", Technical.dirLevel);
+            game.prefs.putBoolean("is_sound_on", Technical.isSoundOn);
             game.prefs.flush();
             dispose();
             Gdx.app.exit();
         }
         if(Gdx.input.isKeyJustPressed(Input.Keys.MENU)){
-            game.prefs.putInteger("max_level", Menu.maxLevel);
-            game.prefs.putBoolean("is_sound_on", Menu.isSoundOn);
+            game.prefs.putInteger("max_level", Technical.maxLevel);
+            game.prefs.putInteger("current_skin", Technical.curSkin);
+            game.prefs.putInteger("money", Technical.money);
+            game.prefs.putInteger("time_level", Technical.timeLevel);
+            game.prefs.putInteger("direction_level", Technical.dirLevel);
+            game.prefs.putBoolean("is_sound_on", Technical.isSoundOn);
             game.prefs.flush();
             dispose();
             Gdx.app.exit();
         }
         if(Gdx.input.isKeyJustPressed(Input.Keys.HOME)){
-            game.prefs.putInteger("max_level", maxLevel);
-            game.prefs.putBoolean("is_sound_on", isSoundOn);
+            game.prefs.putInteger("max_level", Technical.maxLevel);
+            game.prefs.putInteger("current_skin", Technical.curSkin);
+            game.prefs.putInteger("money", Technical.money);
+            game.prefs.putInteger("time_level", Technical.timeLevel);
+            game.prefs.putInteger("direction_level", Technical.dirLevel);
+            game.prefs.putBoolean("is_sound_on", Technical.isSoundOn);
             game.prefs.flush();
             dispose();
             Gdx.app.exit();
@@ -225,9 +268,9 @@ class Menu implements Screen {
         if (isLevel) {
             start = new BLButton(
                     game,
-                    0.725f*game.width,
+                    0.675f*game.width,
                     0.025f*game.width,
-                    0.25f * game.width,
+                    0.3f * game.width,
                     game.fonts.small.getFont(),
                     game.textSystem.get("back_button"),
                     1,
@@ -249,10 +292,10 @@ class Menu implements Screen {
             @Override
             public void clicked (InputEvent event, float x, float y) {
                 if (!obf.isActive() && !isLevel) {
-                    if (Menu.isSoundOn) game.sounds.click.play();
+                    if (Technical.isSoundOn) game.sounds.click.play();
                     page = 0;
-                    start.get().setSize(0.25f*game.width, 0.125f*game.width);
-                    start.get().addAction(Actions.moveTo(0.725f*game.width, 0.025f*game.width));
+                    start.get().setSize(0.3f*game.width, 0.15f*game.width);
+                    start.get().addAction(Actions.moveTo(0.675f*game.width, 0.025f*game.width));
                     TextButton.TextButtonStyle style = start.get().getStyle();
                     style.font = game.fonts.small.getFont();
                     start.get().setStyle(style);
@@ -260,7 +303,7 @@ class Menu implements Screen {
                     isLevel = true;
                     start.get().setChecked(false);
                 } else if (!obf.isActive() && isLevel) {
-                    if (Menu.isSoundOn) game.sounds.click.play();
+                    if (Technical.isSoundOn) game.sounds.click.play();
                     start.get().setSize(0.5f*game.width, 0.25f*game.width);
                     start.get().addAction(Actions.moveTo(0.25f*game.width, 0.5f*game.height + 0.025f*game.width));
                     TextButton.TextButtonStyle style = start.get().getStyle();
@@ -290,9 +333,9 @@ class Menu implements Screen {
             @Override
             public void clicked (InputEvent event, float x, float y) {
                 if (!obf.isActive() && !isAbout) {
-                    if (Menu.isSoundOn) game.sounds.click.play();
-                    about.get().setSize(0.25f*game.width, 0.125f*game.width);
-                    about.get().addAction(Actions.moveTo(0.725f*game.width, 0.025f*game.width));
+                    if (Technical.isSoundOn) game.sounds.click.play();
+                    about.get().setSize(0.3f*game.width, 0.15f*game.width);
+                    about.get().addAction(Actions.moveTo(0.675f*game.width, 0.025f*game.width));
                     TextButton.TextButtonStyle style = about.get().getStyle();
                     style.font = game.fonts.small.getFont();
                     about.get().setStyle(style);
@@ -300,7 +343,7 @@ class Menu implements Screen {
                     isAbout = true;
                     about.get().setChecked(false);
                 } else if (!obf.isActive() && isAbout) {
-                    if (Menu.isSoundOn) game.sounds.click.play();
+                    if (Technical.isSoundOn) game.sounds.click.play();
                     about.get().setSize(0.5f*game.width, 0.25f*game.width);
                     about.get().addAction(Actions.moveTo(0.25f*game.width, 0.5f*game.height - 0.275f*game.width));
                     TextButton.TextButtonStyle style = about.get().getStyle();
@@ -318,15 +361,15 @@ class Menu implements Screen {
 
         sound = new BLButton(
                 game,
-                0.725f*game.width,
-                0.175f*game.width,
-                0.25f*game.width,
+                0.675f*game.width,
+                0.2f*game.width,
+                0.3f*game.width,
                 game.fonts.small.getFont(),
                 game.textSystem.get("sound_button"),
                 1,
                 "sound_button"
         );
-        if (isSoundOn) {
+        if (Technical.isSoundOn) {
             sound.get().setChecked(true);
             sound.get().setColor(Color.WHITE);
         } else {
@@ -337,14 +380,14 @@ class Menu implements Screen {
             @Override
             public void clicked (InputEvent event, float x, float y) {
                 if (!obf.isActive() && isAbout) {
-                    if (Menu.isSoundOn) game.sounds.click.play();
+                    if (Technical.isSoundOn) game.sounds.click.play();
                     if (sound.get().getColor().equals(Color.GRAY)) {
-                        isSoundOn = true;
+                        Technical.isSoundOn = true;
                         game.sounds.mainTheme.play();
                         sound.get().setChecked(true);
                         sound.get().setColor(Color.WHITE);
                     } else {
-                        isSoundOn = false;
+                        Technical.isSoundOn = false;
                         game.sounds.mainTheme.stop();
                         sound.get().setChecked(false);
                         sound.get().setColor(Color.GRAY);
@@ -420,7 +463,7 @@ class Menu implements Screen {
                 if (!obf.isActive() && isLevel && page > 0) {
                     page--;
                     left.get().setChecked(false);
-                    if (Menu.isSoundOn) game.sounds.click.play();
+                    if (Technical.isSoundOn) game.sounds.click.play();
                 } else {
                     left.get().setChecked(false);
                 }
@@ -443,7 +486,7 @@ class Menu implements Screen {
                 if (!obf.isActive() && isLevel && page < 9) {
                     page++;
                     right.get().setChecked(false);
-                    if (Menu.isSoundOn) game.sounds.click.play();
+                    if (Technical.isSoundOn) game.sounds.click.play();
                 } else {
                     right.get().setChecked(false);
                 }
@@ -452,9 +495,9 @@ class Menu implements Screen {
         stage.addActor(right.get());
         records = new BLButton(
                 game,
-                0.5f*(game.width - 2f * sizeXY),
-                0.65f*game.height - 5f*1.25f*sizeXY,
-                2f * sizeXY,
+                0.35f*game.width,
+                0.025f * game.width,
+                0.3f * game.width,
                 game.fonts.small.getFont(),
                 game.textSystem.get("rcrds"),
                 1,
@@ -465,19 +508,41 @@ class Menu implements Screen {
             public void clicked (InputEvent event, float x, float y) {
                 if (!obf.isActive() && isLevel) {
                     nextRecords = true;
-                    if (Menu.isSoundOn) game.sounds.click.play();
+                    if (Technical.isSoundOn) game.sounds.click.play();
                 } else {
                     records.get().setChecked(false);
                 }
             }
         });
         stage.addActor(records.get());
+        shop = new BLButton(
+                game,
+                0.025f*game.width,
+                0.025f * game.width,
+                0.3f * game.width,
+                game.fonts.small.getFont(),
+                game.textSystem.get("shop_button"),
+                1,
+                "shop_button"
+        );
+        shop.get().addListener(new ClickListener(){
+            @Override
+            public void clicked (InputEvent event, float x, float y) {
+                if (!obf.isActive() && isLevel) {
+                    nextShop = true;
+                    if (Technical.isSoundOn) game.sounds.click.play();
+                } else {
+                    shop.get().setChecked(false);
+                }
+            }
+        });
+        stage.addActor(shop.get());
 
         //
         cheat = new BLButton(
                 game,
-                edgeMerge,
-                0.65f*game.height - 6f*1.25f*sizeXY,
+                0.5f*(game.width - sizeXY),
+                0.65f*game.height - 5f*1.25f*sizeXY,
                 sizeXY,
                 game.fonts.large.getFont(),
                 "+",
@@ -488,9 +553,9 @@ class Menu implements Screen {
             @Override
             public void clicked (InputEvent event, float x, float y) {
                 if (!obf.isActive() && isLevel) {
-                    maxLevel++;
+                    Technical.maxLevel++;
                     cheat.get().setChecked(false);
-                    if (Menu.isSoundOn) game.sounds.click.play();
+                    if (Technical.isSoundOn) game.sounds.click.play();
                 } else {
                     cheat.get().setChecked(false);
                 }
@@ -593,8 +658,12 @@ class Menu implements Screen {
 
     @Override
     public void pause() {
-        game.prefs.putInteger("max_level", maxLevel);
-        game.prefs.putBoolean("is_sound_on", isSoundOn);
+        game.prefs.putInteger("max_level", Technical.maxLevel);
+        game.prefs.putInteger("current_skin", Technical.curSkin);
+        game.prefs.putInteger("money", Technical.money);
+        game.prefs.putInteger("time_level", Technical.timeLevel);
+        game.prefs.putInteger("direction_level", Technical.dirLevel);
+        game.prefs.putBoolean("is_sound_on", Technical.isSoundOn);
         game.prefs.flush();
         if (game.sounds.mainTheme.isPlaying()) {
             game.sounds.mainTheme.pause();
@@ -604,7 +673,7 @@ class Menu implements Screen {
 
     @Override
     public void resume() {
-        if (!game.sounds.mainTheme.isPlaying()) if (Menu.isSoundOn) game.sounds.mainTheme.play();
+        if (!game.sounds.mainTheme.isPlaying()) if (Technical.isSoundOn) game.sounds.mainTheme.play();
     }
 
     @Override
@@ -614,8 +683,12 @@ class Menu implements Screen {
 
     @Override
     public void dispose() {
-        game.prefs.putInteger("max_level", maxLevel);
-        game.prefs.putBoolean("is_sound_on", isSoundOn);
+        game.prefs.putInteger("max_level", Technical.maxLevel);
+        game.prefs.putInteger("current_skin", Technical.curSkin);
+        game.prefs.putInteger("money", Technical.money);
+        game.prefs.putInteger("time_level", Technical.timeLevel);
+        game.prefs.putInteger("direction_level", Technical.dirLevel);
+        game.prefs.putBoolean("is_sound_on", Technical.isSoundOn);
         game.prefs.flush();
     }
 }

@@ -53,6 +53,7 @@ class Space implements Screen, GestureListener {
     private LinkedList<Entity> platelets;
     private LinkedList<Entity> lymphocytes;
     private LinkedList<Entity> viruses;
+    private LinkedList<Entity> bonuses;
     private LinkedList<Bound> bounds;
     private Entity player;
 
@@ -65,6 +66,7 @@ class Space implements Screen, GestureListener {
     private boolean isVictory = false;
     private int playerScore = 0;
     private int lymphScore = 0;
+    private int moneyScore = 0;
 
     private int curLevel;
 
@@ -76,6 +78,7 @@ class Space implements Screen, GestureListener {
     private AdvSprite redCellSign;
     private AdvSprite pointer;
 
+    private long dirTimer = 0;
     private int score = 0;
     private long timer = 0;
     private long givenTime = 0;
@@ -107,18 +110,19 @@ class Space implements Screen, GestureListener {
         platelets = new LinkedList<Entity>();
         bounds = new LinkedList<Bound>();
         partSpec = new LinkedList<AdvSprite>();
+        bonuses = new LinkedList<Entity>();
     }
 
     @Override
     public void show () {
         game.sounds.mainTheme.setLooping(true);
         game.sounds.mainTheme.setVolume(0.25f);
-        if (Menu.isSoundOn) game.sounds.mainTheme.play();
+        if (Technical.isSoundOn) game.sounds.mainTheme.play();
 
         Box2D.init();
         contactListenerInit();
 
-        AdvSprite playerEnt = new AdvSprite(game.atlas.createSprite("white"), 0f, 0f, 1f, 1f);
+        AdvSprite playerEnt = new AdvSprite(game.atlas.createSprite("white", Technical.curSkin), 0f, 0f, 1f, 1f);
         player = new Entity(playerEnt, world, 0f, 5f, 0.2f, "player");
         player.getBody().setAngularVelocity(0.25f);
 
@@ -161,6 +165,7 @@ class Space implements Screen, GestureListener {
             for (Entity l : lymphocytes) gravity(l.getBody(), s);
             for (Entity v : viruses) gravity(v.getBody(), s);
             for (Entity t : platelets) gravity(t.getBody(), s);
+            for (Entity b : bonuses) gravity(b.getBody(), s);
 
             if (!isGameOver) lifeCycle();
 
@@ -321,9 +326,41 @@ class Space implements Screen, GestureListener {
         } else if (isGameOver) {
             if (obf.isActive()) {
                 if (isVictory){
-                    if (Menu.maxLevel == curLevel) Menu.maxLevel++;
+                    int stars = 0;
+                    Technical.money += moneyScore;
+                    if (Technical.maxLevel == curLevel) Technical.maxLevel++;
                     score = (int)((score + (timer / 6)) - (score + (timer / 6)) % 10);
-                    game.setScreen(new Results(game, curLevel, score));
+                    if (curLevel > 4) {
+                        switch (curLevel % 4) {
+                            case 1: {
+                                if ((float) timer / (float) givenTime >= 0.15f - (float) curLevel / 2000f) stars++;
+                                if ((float) timer / (float) givenTime >= 0.3f - (float) curLevel / 2000f) stars++;
+                                if ((float) timer / (float) givenTime >= 0.45f - (float) curLevel / 2000f) stars++;
+                                break;
+                            }
+                            case 2: {
+                                if ((float)playerScore / (lymphScore + 1f) >= 1.1f) stars++;
+                                if ((float)playerScore / (lymphScore + 1f) >= 1.2f) stars++;
+                                if ((float)playerScore / (lymphScore + 1f) >= 1.3f) stars++;
+                                break;
+                            }
+                            case 3: {
+                                if ((float) timer / (float) givenTime >= 0.15f - (float) curLevel / 2000f) stars++;
+                                if ((float) timer / (float) givenTime >= 0.3f - (float) curLevel / 2000f) stars++;
+                                if ((float) timer / (float) givenTime >= 0.45f - (float) curLevel / 2000f) stars++;
+                                break;
+                            }
+                            case 0: {
+                                if ((float) timer / (float) givenTime >= 0.15f - (float) curLevel / 2000f) stars++;
+                                if ((float) timer / (float) givenTime >= 0.3f - (float) curLevel / 2000f) stars++;
+                                if ((float) timer / (float) givenTime >= 0.45f - (float) curLevel / 2000f) stars++;
+                                break;
+                            }
+                        }
+                    } else {
+                        stars = 3;
+                    }
+                    game.setScreen(new Results(game, curLevel, score, stars, moneyScore));
                 } else {
                     game.setScreen(new Menu(game, true));
                 }
@@ -350,22 +387,34 @@ class Space implements Screen, GestureListener {
         stage.getBatch().end();
 
         if(Gdx.input.isKeyJustPressed(Input.Keys.BACK)){
-            game.prefs.putInteger("max_level", Menu.maxLevel);
-            game.prefs.putBoolean("is_sound_on", Menu.isSoundOn);
+            game.prefs.putInteger("max_level", Technical.maxLevel);
+            game.prefs.putInteger("current_skin", Technical.curSkin);
+            game.prefs.putInteger("money", Technical.money);
+            game.prefs.putInteger("time_level", Technical.timeLevel);
+            game.prefs.putInteger("direction_level", Technical.dirLevel);
+            game.prefs.putBoolean("is_sound_on", Technical.isSoundOn);
             game.prefs.flush();
             dispose();
             Gdx.app.exit();
         }
         if(Gdx.input.isKeyJustPressed(Input.Keys.MENU)){
-            game.prefs.putInteger("max_level", Menu.maxLevel);
-            game.prefs.putBoolean("is_sound_on", Menu.isSoundOn);
+            game.prefs.putInteger("max_level", Technical.maxLevel);
+            game.prefs.putInteger("current_skin", Technical.curSkin);
+            game.prefs.putInteger("money", Technical.money);
+            game.prefs.putInteger("time_level", Technical.timeLevel);
+            game.prefs.putInteger("direction_level", Technical.dirLevel);
+            game.prefs.putBoolean("is_sound_on", Technical.isSoundOn);
             game.prefs.flush();
             dispose();
             Gdx.app.exit();
         }
         if(Gdx.input.isKeyJustPressed(Input.Keys.HOME)){
-            game.prefs.putInteger("max_level", Menu.maxLevel);
-            game.prefs.putBoolean("is_sound_on", Menu.isSoundOn);
+            game.prefs.putInteger("max_level", Technical.maxLevel);
+            game.prefs.putInteger("current_skin", Technical.curSkin);
+            game.prefs.putInteger("money", Technical.money);
+            game.prefs.putInteger("time_level", Technical.timeLevel);
+            game.prefs.putInteger("direction_level", Technical.dirLevel);
+            game.prefs.putBoolean("is_sound_on", Technical.isSoundOn);
             game.prefs.flush();
             dispose();
             Gdx.app.exit();
@@ -397,6 +446,7 @@ class Space implements Screen, GestureListener {
                     if (!hasPlatelet) playerVsPlatelets(contact);
                     if (hasPlatelet) playerVsLymph(contact);
                 }
+                playerVsBonus(contact);
                 playerVsViruses(contact);
             }
         };
@@ -469,9 +519,10 @@ class Space implements Screen, GestureListener {
                     virus.decreaseLT(60);
                     virus.addAction(Actions.color(Color.RED));
                     virus.addAction(Actions.color(Color.WHITE, 0.5f));
+                    if (Technical.isSoundOn) game.sounds.hit.play(1f, 1.1f - rand.nextFloat() / 5f, 0f);
                     if (virus.getLifeTime() == 0) {
                         playerScore++;
-                        if (Menu.isSoundOn) game.sounds.death.play(1f, 1.25f - rand.nextFloat() / 2f, 0f);
+                        if (Technical.isSoundOn) game.sounds.hit.play(1f, 0.7f - rand.nextFloat() / 5f, 0f);
                     }
                     break;
                 }
@@ -491,9 +542,10 @@ class Space implements Screen, GestureListener {
                     virus.decreaseLT(60);
                     virus.addAction(Actions.color(Color.RED));
                     virus.addAction(Actions.color(Color.WHITE, 0.5f));
+                    if (Technical.isSoundOn) game.sounds.hit.play(1f, 1.1f - rand.nextFloat() / 5f, 0f);
                     if (virus.getLifeTime() == 0) {
                         playerScore++;
-                        if (Menu.isSoundOn) game.sounds.death.play(1f, 1.25f - rand.nextFloat() / 2f, 0f);
+                        if (Technical.isSoundOn) game.sounds.hit.play(1f, 0.7f - rand.nextFloat() / 5f, 0f);
                     }
                     break;
                 }
@@ -509,6 +561,7 @@ class Space implements Screen, GestureListener {
                     score += 10;
                     platelet.setName("platelet_s");
                     hasPlatelet = true;
+                    if (Technical.isSoundOn) game.sounds.hit.play(1f, 1.25f - rand.nextFloat() / 2f, 0f);
                     break;
                 }
             }else if (contact.getFixtureB().getBody().equals(player.getBody()) && contact.getFixtureA().getBody().equals(platelet.getBody())) {
@@ -516,6 +569,7 @@ class Space implements Screen, GestureListener {
                     score += 10;
                     platelet.setName("platelet_s");
                     hasPlatelet = true;
+                    if (Technical.isSoundOn) game.sounds.hit.play(1f, 1.25f - rand.nextFloat() / 2f, 0f);
                     break;
                 }
             }
@@ -530,6 +584,7 @@ class Space implements Screen, GestureListener {
                     redCell.addAction(Actions.color(Color.WHITE, 1f));
                     redCell.setName("red_cell");
                     score += 10;
+                    if (Technical.isSoundOn) game.sounds.heal.play(1f, 1.25f - rand.nextFloat() / 2f, 0f);
                     for (int i = 0; i < platelets.size(); i++){
                         if (platelets.get(i).getName().equals("platelet_s"))
                             platelets.get(i).decreaseLT(1000);
@@ -543,6 +598,7 @@ class Space implements Screen, GestureListener {
                     redCell.addAction(Actions.color(Color.WHITE, 1f));
                     redCell.setName("red_cell");
                     score += 10;
+                    if (Technical.isSoundOn) game.sounds.heal.play(1f, 1.25f - rand.nextFloat() / 2f, 0f);
                     for (int i = 0; i < platelets.size(); i++) {
                         if (platelets.get(i).getName().equals("platelet_s"))
                             platelets.get(i).decreaseLT(1000);
@@ -563,6 +619,7 @@ class Space implements Screen, GestureListener {
                     lymph.addAction(Actions.color(Color.WHITE, 1f));
                     lymph.setName("lymphocyte");
                     score += 10;
+                    if (Technical.isSoundOn) game.sounds.heal.play(1f, 1.25f - rand.nextFloat() / 2f, 0f);
                     for (int i = 0; i < platelets.size(); i++){
                         if (platelets.get(i).getName().equals("platelet_s"))
                             platelets.get(i).decreaseLT(1000);
@@ -575,12 +632,84 @@ class Space implements Screen, GestureListener {
                     lymph.addAction(Actions.color(Color.WHITE, 1f));
                     lymph.setName("lymphocyte");
                     score += 10;
+                    if (Technical.isSoundOn) game.sounds.heal.play(1f, 1.25f - rand.nextFloat() / 2f, 0f);
                     for (int i = 0; i < platelets.size(); i++){
                         if (platelets.get(i).getName().equals("platelet_s"))
                             platelets.get(i).decreaseLT(1000);
                     }
                     hasPlatelet = false;
                     break;
+                }
+            }
+        }
+    }
+    private void playerVsBonus (Contact contact) {
+        Iterator<Entity> iBonus = bonuses.iterator();
+        while (iBonus.hasNext()) {
+            Entity bonus = iBonus.next();
+            if (contact.getFixtureA().getBody().equals(player.getBody()) && contact.getFixtureB().getBody().equals(bonus.getBody())) {
+                if (bonus.getLifeTime() > 0) {
+                    switch (bonus.getName()) {
+                        case "green_bonus": {
+                            bonus.decreaseLT(1000);
+                            if (bonus.getLifeTime() == 0) {
+                                moneyScore++;
+                                score += 10;
+                                if (Technical.isSoundOn) game.sounds.bonus.play(1f, 1.1f - rand.nextFloat() / 5f, 0f);
+                            }
+                            break;
+                        }
+                        case "time_bonus": {
+                            bonus.decreaseLT(1000);
+                            if (bonus.getLifeTime() == 0) {
+                                score += 10;
+                                if (Technical.isSoundOn) game.sounds.bonus.play(1f, 1.1f - rand.nextFloat() / 5f, 0f);
+                                timer += 60 + Technical.timeLevel * 2 * 60;
+                            }
+                            break;
+                        }
+                        case "direction_bonus": {
+                            bonus.decreaseLT(1000);
+                            if (bonus.getLifeTime() == 0) {
+                                score += 10;
+                                if (Technical.isSoundOn) game.sounds.bonus.play(1f, 1.1f - rand.nextFloat() / 5f, 0f);
+                                dirTimer += 60 + Technical.timeLevel * 60;
+                            }
+                            break;
+                        }
+                    }
+                }
+            }else if (contact.getFixtureB().getBody().equals(player.getBody()) && contact.getFixtureA().getBody().equals(bonus.getBody())) {
+                if (bonus.getLifeTime() > 0) {
+                    switch (bonus.getName()) {
+                        case "green_bonus": {
+                            bonus.decreaseLT(1000);
+                            if (bonus.getLifeTime() == 0) {
+                                moneyScore++;
+                                score += 10;
+                                if (Technical.isSoundOn) game.sounds.bonus.play(1f, 1.1f - rand.nextFloat() / 5f, 0f);
+                            }
+                            break;
+                        }
+                        case "time_bonus": {
+                            bonus.decreaseLT(1000);
+                            if (bonus.getLifeTime() == 0) {
+                                score += 10;
+                                if (Technical.isSoundOn) game.sounds.bonus.play(1f, 1.1f - rand.nextFloat() / 5f, 0f);
+                                timer += 60 + Technical.timeLevel * 2 * 60;
+                            }
+                            break;
+                        }
+                        case "direction_bonus": {
+                            bonus.decreaseLT(1000);
+                            if (bonus.getLifeTime() == 0) {
+                                score += 10;
+                                if (Technical.isSoundOn) game.sounds.bonus.play(1f, 1.1f - rand.nextFloat() / 5f, 0f);
+                                dirTimer += 60 + Technical.timeLevel * 60;
+                            }
+                            break;
+                        }
+                    }
                 }
             }
         }
@@ -601,7 +730,7 @@ class Space implements Screen, GestureListener {
             @Override
             public void clicked (InputEvent event, float x, float y) {
                 if (!obf.isActive()) {
-                    if (Menu.isSoundOn) game.sounds.click.play();
+                    if (Technical.isSoundOn) game.sounds.click.play();
                     toMenu = true;
                 } else {
                     exit.get().setChecked(false);
@@ -624,10 +753,10 @@ class Space implements Screen, GestureListener {
             @Override
             public void clicked (InputEvent event, float x, float y) {
                 if (!obf.isActive()) {
-                    if (Menu.isSoundOn) game.sounds.click.play();
+                    if (Technical.isSoundOn) game.sounds.click.play();
                     isPaused = !isPaused;
-                    game.prefs.putInteger("max_level", Menu.maxLevel);
-                    game.prefs.putBoolean("is_sound_on", Menu.isSoundOn);
+                    game.prefs.putInteger("max_level", Technical.maxLevel);
+                    game.prefs.putBoolean("is_sound_on", Technical.isSoundOn);
                     game.prefs.flush();
                 } else {
                     pause.get().setChecked(false);
@@ -690,7 +819,7 @@ class Space implements Screen, GestureListener {
                     virusSign1 = new AdvSprite(game.atlas.createSprite("virus", rand.nextInt(5) + 11), 0f, 0f, 0.1f * game.width, 0.1f * game.width);
                     virusSign2 = new AdvSprite(game.atlas.createSprite("virus", rand.nextInt(5) + 11), 0f, 0f, 0.1f * game.width, 0.1f * game.width);
                     lymphSign = new AdvSprite(game.atlas.createSprite("lymphocytes"), 0f, 0f, 0.05f * game.width, 0.05f * game.width);
-                    playerSign = new AdvSprite(game.atlas.createSprite("white"), 0f, 0f, 0.05f * game.width, 0.05f * game.width);
+                    playerSign = new AdvSprite(game.atlas.createSprite("white", Technical.curSkin), 0f, 0f, 0.05f * game.width, 0.05f * game.width);
 
                     stage.addActor(virusSign1);
                     stage.addActor(virusSign2);
@@ -801,6 +930,8 @@ class Space implements Screen, GestureListener {
                     virusSign1.addAction(Actions.rotateBy(1f));
                     virusSign1.updateSprite();
                     pointerUpdateVirus();
+                    if (dirTimer > 0) pointer.addAction(Actions.alpha(1f, 1f));
+                    if (dirTimer <= 0) pointer.addAction(Actions.alpha(0f, 1f));
                     pointer.updateSprite(spec.get());
                     if (givenTime != 0) {
                         timeLine.setSize(game.width*((float)timer/(float)givenTime), timeLine.getHeight());
@@ -840,6 +971,8 @@ class Space implements Screen, GestureListener {
                     lymphSign.updateSprite();
 
                     pointerUpdateVirus();
+                    if (dirTimer > 0) pointer.addAction(Actions.alpha(1f, 1f));
+                    if (dirTimer <= 0) pointer.addAction(Actions.alpha(0f, 1f));
                     pointer.updateSprite(spec.get());
                     if (givenTime != 0) {
                         timeLine.setSize(game.width*((float)timer/(float)givenTime), timeLine.getHeight());
@@ -860,6 +993,8 @@ class Space implements Screen, GestureListener {
                         pointerUpdatePlat();
                     else
                         pointerUpdateRedCell();
+                    if (dirTimer > 0) pointer.addAction(Actions.alpha(1f, 1f));
+                    if (dirTimer <= 0) pointer.addAction(Actions.alpha(0f, 1f));
                     pointer.updateSprite(spec.get());
                     if (givenTime != 0) {
                         timeLine.setSize(game.width*((float)timer/(float)givenTime), timeLine.getHeight());
@@ -883,6 +1018,8 @@ class Space implements Screen, GestureListener {
                     lAndPSign.addAction(Actions.rotateBy(1f));
                     lAndPSign.updateSprite();
                     pointerUpdateVirus();
+                    if (dirTimer > 0) pointer.addAction(Actions.alpha(1f, 1f));
+                    if (dirTimer <= 0) pointer.addAction(Actions.alpha(0f, 1f));
                     pointer.updateSprite(spec.get());
                     if (givenTime != 0) {
                         timeLine.setSize(game.width*((float)timer/(float)givenTime), timeLine.getHeight());
@@ -904,6 +1041,8 @@ class Space implements Screen, GestureListener {
             } else {
                 pointerUpdateVirus();
             }
+            if (dirTimer > 0) pointer.addAction(Actions.alpha(1f, 1f));
+            if (dirTimer <= 0) pointer.addAction(Actions.alpha(0f, 1f));
             pointer.updateSprite(spec.get());
             if (givenTime != 0) {
                 timeLine.setSize(game.width*((float)timer/(float)givenTime), timeLine.getHeight());
@@ -1259,6 +1398,66 @@ class Space implements Screen, GestureListener {
         stage.addActor(lymphocyte);
         lymphocytes.addFirst(lymphocyte);
     }
+    private void spawnGreenBonus (int hp, Vector2 vec) {
+        AdvSprite gBonusE = new AdvSprite(game.atlas.createSprite("green_card"), 0, 0, 0.5f, 0.5f);
+        Entity gBonusS = new Entity(gBonusE, world, 0f, 3f, 0.2f, "green_bonus");
+        gBonusS.setLT(hp);
+        gBonusS.getBody().setTransform(vec.x, vec.y, 0f);
+        if (rand.nextInt(2) == 0)
+            gBonusS.getBody().setAngularVelocity(rand.nextFloat() + 0.1f);
+        else
+            gBonusS.getBody().setAngularVelocity(-rand.nextFloat() - 0.1f);
+        float sizeX = gBonusS.getWidth(), sizeY = gBonusS.getHeight();
+        gBonusS.setSize(0f, 0f);
+        gBonusS.addAction(Actions.alpha(0f));
+        gBonusS.addAction(Actions.parallel(
+                Actions.sizeTo(sizeX, sizeY, 1f),
+                Actions.alpha(1f, 1f)
+        ));
+
+        stage.addActor(gBonusS);
+        bonuses.addFirst(gBonusS);
+    }
+    private void spawnTimeBonus (int hp, Vector2 vec) {
+        AdvSprite gBonusE = new AdvSprite(game.atlas.createSprite("time"), 0, 0, 0.5f, 0.5f);
+        Entity gBonusS = new Entity(gBonusE, world, 0f, 3f, 0.2f, "time_bonus");
+        gBonusS.setLT(hp);
+        gBonusS.getBody().setTransform(vec.x, vec.y, 0f);
+        if (rand.nextInt(2) == 0)
+            gBonusS.getBody().setAngularVelocity(rand.nextFloat() + 0.1f);
+        else
+            gBonusS.getBody().setAngularVelocity(-rand.nextFloat() - 0.1f);
+        float sizeX = gBonusS.getWidth(), sizeY = gBonusS.getHeight();
+        gBonusS.setSize(0f, 0f);
+        gBonusS.addAction(Actions.alpha(0f));
+        gBonusS.addAction(Actions.parallel(
+                Actions.sizeTo(sizeX, sizeY, 1f),
+                Actions.alpha(1f, 1f)
+        ));
+
+        stage.addActor(gBonusS);
+        bonuses.addFirst(gBonusS);
+    }
+    private void spawnDirBonus (int hp, Vector2 vec) {
+        AdvSprite gBonusE = new AdvSprite(game.atlas.createSprite("direction"), 0, 0, 0.5f, 0.5f);
+        Entity gBonusS = new Entity(gBonusE, world, 0f, 3f, 0.2f, "direction_bonus");
+        gBonusS.setLT(hp);
+        gBonusS.getBody().setTransform(vec.x, vec.y, 0f);
+        if (rand.nextInt(2) == 0)
+            gBonusS.getBody().setAngularVelocity(rand.nextFloat() + 0.1f);
+        else
+            gBonusS.getBody().setAngularVelocity(-rand.nextFloat() - 0.1f);
+        float sizeX = gBonusS.getWidth(), sizeY = gBonusS.getHeight();
+        gBonusS.setSize(0f, 0f);
+        gBonusS.addAction(Actions.alpha(0f));
+        gBonusS.addAction(Actions.parallel(
+                Actions.sizeTo(sizeX, sizeY, 1f),
+                Actions.alpha(1f, 1f)
+        ));
+
+        stage.addActor(gBonusS);
+        bonuses.addFirst(gBonusS);
+    }
 
     private void gravity (Body b, float s) {
         float velX = b.getLinearVelocity().x;
@@ -1354,6 +1553,22 @@ class Space implements Screen, GestureListener {
                 if (!l.hasActions()){
                     l.getWorld().destroyBody(l.getBody());
                     lymphI.remove();
+                }
+            }
+        }
+        Iterator<Entity> bonusI = bonuses.iterator();
+        while (bonusI.hasNext()) {
+            Entity b = bonusI.next();
+            b.updateSprite(spec.get());
+            b.updateLife();
+            b.decreaseLT();
+            if (b.getLifeTime() <= 0) {
+                if (b.isAlive()) {
+                    b.kill();
+                }
+                if (!b.hasActions()){
+                    b.getWorld().destroyBody(b.getBody());
+                    bonusI.remove();
                 }
             }
         }
@@ -1509,8 +1724,7 @@ class Space implements Screen, GestureListener {
                     timer += h * 60;
                     givenTime += h * 60;
                     target += (curLevel % 21) / 4;
-                    number += curLevel / 20 - 4;
-                    number -= (curLevel % 21) / 4;
+                    number -= (curLevel % 21) / 4 + curLevel / 60;
                     for (int i = 0; i < number; i++) spawnLymph(1000000, getRandSpawnLoc(), false);
                     break;
                 }
@@ -1568,6 +1782,8 @@ class Space implements Screen, GestureListener {
         if (curLevel % 20 == 0) {
             if (rand.nextInt(150) == 0) spawnRedCell(100, getRandSpawnLoc(), false);
             if (rand.nextInt(150) == 0) spawnPlatelet(100, getRandSpawnLoc());
+            if (rand.nextInt(750) == 0) spawnGreenBonus(200, getRandSpawnLoc());
+            if (rand.nextInt(750) == 0) spawnTimeBonus(200, getRandSpawnLoc());
             boolean isBossKilled = true;
             float bossX = 0, bossY = 0;
             for (Entity e : viruses) {
@@ -1585,8 +1801,9 @@ class Space implements Screen, GestureListener {
             int x = 4 - (rand.nextInt(9));
             bossX += x;
             bossY = rand.nextInt(2) == 0 ? bossY + (float)Math.sqrt(16 - x * x) : bossY - (float)Math.sqrt(16 - x * x);
-            if (rand.nextInt(50) == 0) spawnVirus(100, 0f, new Vector2(bossX, bossY), rand.nextInt(10) + 1);
+            if (rand.nextInt(30) == 0) spawnVirus(30, 0f, new Vector2(bossX, bossY), rand.nextInt(10) + 1);
             timer--;
+            if (dirTimer > 0) dirTimer--;
             if (timer < 0) {
                 isGameOver = true;
             }
@@ -1596,7 +1813,11 @@ class Space implements Screen, GestureListener {
                     if (rand.nextInt(150) == 0) spawnRedCell(100, getRandSpawnLoc(), false);
                     if (rand.nextInt(150) == 0) spawnPlatelet(100, getRandSpawnLoc());
                     if (rand.nextInt(150) == 0) spawnVirus(150, 1f - rand.nextFloat() / 2f, getRandSpawnLoc(), rand.nextInt(19) + 1);
+                    if (rand.nextInt(750) == 0) spawnGreenBonus(200, getRandSpawnLoc());
+                    if (rand.nextInt(750) == 0) spawnTimeBonus(200, getRandSpawnLoc());
+                    if (rand.nextInt(750) == 0) spawnDirBonus(200, getRandSpawnLoc());
                     timer--;
+                    if (dirTimer > 0) dirTimer--;
                     if (playerScore >= target) {
                         isVictory = true;
                         isGameOver = true;
@@ -1610,6 +1831,9 @@ class Space implements Screen, GestureListener {
                     if (rand.nextInt(150) == 0) spawnRedCell(100, getRandSpawnLoc(), false);
                     if (rand.nextInt(150) == 0) spawnPlatelet(100, getRandSpawnLoc());
                     if (rand.nextInt(100) == 0) spawnVirus(150, 1f - rand.nextFloat() / 2f, getRandSpawnLoc(), rand.nextInt(19) + 1);
+                    if (rand.nextInt(750) == 0) spawnGreenBonus(200, getRandSpawnLoc());
+                    if (rand.nextInt(750) == 0) spawnDirBonus(200, getRandSpawnLoc());
+                    if (dirTimer > 0) dirTimer--;
                     if (playerScore >= target) {
                         isGameOver = true;
                         isVictory = true;
@@ -1621,8 +1845,12 @@ class Space implements Screen, GestureListener {
                 }
                 case 3: {
                     timer--;
+                    if (dirTimer > 0) dirTimer--;
                     if (rand.nextInt(100) == 0) spawnPlatelet(100, getRandSpawnLoc());
                     if (rand.nextInt(100) == 0) spawnRedCell(100, getRandSpawnLoc(), true);
+                    if (rand.nextInt(750) == 0) spawnGreenBonus(200, getRandSpawnLoc());
+                    if (rand.nextInt(750) == 0) spawnTimeBonus(200, getRandSpawnLoc());
+                    if (rand.nextInt(750) == 0) spawnDirBonus(200, getRandSpawnLoc());
                     if (playerScore >= target) {
                         isVictory = true;
                         isGameOver = true;
@@ -1636,7 +1864,11 @@ class Space implements Screen, GestureListener {
                     if (rand.nextInt(150) == 0) spawnRedCell(100, getRandSpawnLoc(), false);
                     if (rand.nextInt(150) == 0) spawnPlatelet(100, getRandSpawnLoc());
                     if (rand.nextInt(100) == 0) spawnVirus(150, 1f - rand.nextFloat() / 2f, getRandSpawnLoc(), rand.nextInt(19) + 1);
+                    if (rand.nextInt(750) == 0) spawnGreenBonus(200, getRandSpawnLoc());
+                    if (rand.nextInt(750) == 0) spawnTimeBonus(200, getRandSpawnLoc());
+                    if (rand.nextInt(750) == 0) spawnDirBonus(200, getRandSpawnLoc());
                     timer--;
+                    if (dirTimer > 0) dirTimer--;
                     if (playerScore + lymphScore >= target) {
                         isGameOver = true;
                         isVictory = true;
@@ -1736,8 +1968,12 @@ class Space implements Screen, GestureListener {
 
     @Override
     public void pause () {
-        game.prefs.putInteger("max_level", Menu.maxLevel);
-        game.prefs.putBoolean("is_sound_on", Menu.isSoundOn);
+        game.prefs.putInteger("max_level", Technical.maxLevel);
+        game.prefs.putInteger("current_skin", Technical.curSkin);
+        game.prefs.putInteger("money", Technical.money);
+        game.prefs.putInteger("time_level", Technical.timeLevel);
+        game.prefs.putInteger("direction_level", Technical.dirLevel);
+        game.prefs.putBoolean("is_sound_on", Technical.isSoundOn);
         game.prefs.flush();
         if (game.sounds.mainTheme.isPlaying()) {
             game.sounds.mainTheme.pause();
@@ -1747,7 +1983,7 @@ class Space implements Screen, GestureListener {
 
     @Override
     public void resume () {
-        if (!game.sounds.mainTheme.isPlaying()) if (Menu.isSoundOn) game.sounds.mainTheme.play();
+        if (!game.sounds.mainTheme.isPlaying()) if (Technical.isSoundOn) game.sounds.mainTheme.play();
     }
 
     @Override
@@ -1757,8 +1993,12 @@ class Space implements Screen, GestureListener {
 
     @Override
     public void dispose () {
-        game.prefs.putInteger("max_level", Menu.maxLevel);
-        game.prefs.putBoolean("is_sound_on", Menu.isSoundOn);
+        game.prefs.putInteger("max_level", Technical.maxLevel);
+        game.prefs.putInteger("current_skin", Technical.curSkin);
+        game.prefs.putInteger("money", Technical.money);
+        game.prefs.putInteger("time_level", Technical.timeLevel);
+        game.prefs.putInteger("direction_level", Technical.dirLevel);
+        game.prefs.putBoolean("is_sound_on", Technical.isSoundOn);
         game.prefs.flush();
     }
 

@@ -123,6 +123,10 @@ public class Entity extends AdvSprite {
         return lifeTime;
     }
 
+    public void setLT (int lifeTime) {
+        this.lifeTime = lifeTime;
+    }
+
     public void decreaseLT () {
         if (rand.nextInt(10) == 0) {
             if (lifeTime - 1 > 0) {

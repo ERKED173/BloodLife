@@ -50,7 +50,7 @@ class Tutorial implements Screen {
     public void show() {
         game.sounds.mainTheme.setLooping(true);
         game.sounds.mainTheme.setVolume(0.25f);
-        if (Menu.isSoundOn) game.sounds.mainTheme.play();
+        if (Technical.isSoundOn) game.sounds.mainTheme.play();
 
         rand = new RandomXS128();
         stage = new Stage();
@@ -148,22 +148,34 @@ class Tutorial implements Screen {
         stage.draw();
 
         if(Gdx.input.isKeyJustPressed(Input.Keys.BACK)){
-            game.prefs.putInteger("max_level", Menu.maxLevel);
-            game.prefs.putBoolean("is_sound_on", Menu.isSoundOn);
+            game.prefs.putInteger("max_level", Technical.maxLevel);
+            game.prefs.putInteger("current_skin", Technical.curSkin);
+            game.prefs.putInteger("money", Technical.money);
+            game.prefs.putInteger("time_level", Technical.timeLevel);
+            game.prefs.putInteger("direction_level", Technical.dirLevel);
+            game.prefs.putBoolean("is_sound_on", Technical.isSoundOn);
             game.prefs.flush();
             dispose();
             Gdx.app.exit();
         }
         if(Gdx.input.isKeyJustPressed(Input.Keys.MENU)){
-            game.prefs.putInteger("max_level", Menu.maxLevel);
-            game.prefs.putBoolean("is_sound_on", Menu.isSoundOn);
+            game.prefs.putInteger("max_level", Technical.maxLevel);
+            game.prefs.putInteger("current_skin", Technical.curSkin);
+            game.prefs.putInteger("money", Technical.money);
+            game.prefs.putInteger("time_level", Technical.timeLevel);
+            game.prefs.putInteger("direction_level", Technical.dirLevel);
+            game.prefs.putBoolean("is_sound_on", Technical.isSoundOn);
             game.prefs.flush();
             dispose();
             Gdx.app.exit();
         }
         if(Gdx.input.isKeyJustPressed(Input.Keys.HOME)){
-            game.prefs.putInteger("max_level", Menu.maxLevel);
-            game.prefs.putBoolean("is_sound_on", Menu.isSoundOn);
+            game.prefs.putInteger("max_level", Technical.maxLevel);
+            game.prefs.putInteger("current_skin", Technical.curSkin);
+            game.prefs.putInteger("money", Technical.money);
+            game.prefs.putInteger("time_level", Technical.timeLevel);
+            game.prefs.putInteger("direction_level", Technical.dirLevel);
+            game.prefs.putBoolean("is_sound_on", Technical.isSoundOn);
             game.prefs.flush();
             dispose();
             Gdx.app.exit();
@@ -173,9 +185,9 @@ class Tutorial implements Screen {
     private void buttonInit () {
         next = new BLButton(
                 game,
-                0.725f*game.width,
+                0.675f*game.width,
                 0.025f*game.width,
-                0.25f*game.width,
+                0.3f * game.width,
                 game.fonts.small.getFont(),
                 game.textSystem.get("next_button"),
                 1,
@@ -185,7 +197,7 @@ class Tutorial implements Screen {
             @Override
             public void clicked (InputEvent event, float x, float y) {
                 if (!obf.isActive()) {
-                    if (Menu.isSoundOn) game.sounds.click.play();
+                    if (Technical.isSoundOn) game.sounds.click.play();
                     nextStart = true;
                 } else {
                     next.get().setChecked(false);
@@ -249,14 +261,14 @@ class Tutorial implements Screen {
 
     private void type0Init () {
         finger = new AdvSprite(game.atlas.createSprite("finger"), 0f, 0.15f*game.height, 0.5f*game.width, 0.5f*game.width);
-        player = new AdvSprite(game.atlas.createSprite("white"), 0.05f*game.width, 0.4f*game.height, 0.15f*game.width, 0.15f*game.width);
+        player = new AdvSprite(game.atlas.createSprite("white", Technical.curSkin), 0.05f*game.width, 0.4f*game.height, 0.15f*game.width, 0.15f*game.width);
 
         stage.addActor(player);
         stage.addActor(finger);
     }
     private void type1Init () {
         finger = new AdvSprite(game.atlas.createSprite("finger"), 0f, 0.15f*game.height, 0.5f*game.width, 0.5f*game.width);
-        player = new AdvSprite(game.atlas.createSprite("white"), 0.05f*game.width, 0.4f*game.height, 0.15f*game.width, 0.15f*game.width);
+        player = new AdvSprite(game.atlas.createSprite("white", Technical.curSkin), 0.05f*game.width, 0.4f*game.height, 0.15f*game.width, 0.15f*game.width);
         virus = new AdvSprite(game.atlas.createSprite("virus", rand.nextInt(19) + 1), 0.8f*game.width, 0.5f*game.height, 0.15f*game.width, 0.15f*game.width);
 
         stage.addActor(player);
@@ -369,7 +381,7 @@ class Tutorial implements Screen {
 
     private void initGame1 () {
         finger = new AdvSprite(game.atlas.createSprite("finger"), 0f, 0.15f*game.height, 0.5f*game.width, 0.5f*game.width);
-        player = new AdvSprite(game.atlas.createSprite("white"), 0.05f*game.width, 0.4f*game.height, 0.15f*game.width, 0.15f*game.width);
+        player = new AdvSprite(game.atlas.createSprite("white", Technical.curSkin), 0.05f*game.width, 0.4f*game.height, 0.15f*game.width, 0.15f*game.width);
         virus = new AdvSprite(game.atlas.createSprite("virus", rand.nextInt(19) + 1), 0.8f*game.width, 0.5f*game.height, 0.15f*game.width, 0.15f*game.width);
 
         stage.addActor(player);
@@ -377,7 +389,7 @@ class Tutorial implements Screen {
         stage.addActor(finger);
     }
     private void initGame2 () {
-        player = new AdvSprite(game.atlas.createSprite("white"), 0.05f*game.width, 0.7f*game.height, 0.15f*game.width, 0.15f*game.width);
+        player = new AdvSprite(game.atlas.createSprite("white", Technical.curSkin), 0.05f*game.width, 0.7f*game.height, 0.15f*game.width, 0.15f*game.width);
         lymph = new AdvSprite(game.atlas.createSprite("lymphocyte", rand.nextInt(7) + 1), 0.05f*game.width, 0.3f*game.height, 0.15f*game.width, 0.15f*game.width);
         virus = new AdvSprite(game.atlas.createSprite("virus", rand.nextInt(19) + 1), 0.8f*game.width, 0.5f*game.height, 0.15f*game.width, 0.15f*game.width);
 
@@ -386,7 +398,7 @@ class Tutorial implements Screen {
         stage.addActor(lymph);
     }
     private void initGame3 () {
-        player = new AdvSprite(game.atlas.createSprite("white"), 0.05f*game.width, 0.5f*game.height, 0.15f*game.width, 0.15f*game.width);
+        player = new AdvSprite(game.atlas.createSprite("white", Technical.curSkin), 0.05f*game.width, 0.5f*game.height, 0.15f*game.width, 0.15f*game.width);
         platelet = new AdvSprite(game.atlas.createSprite("yellow"), 0.8f*game.width, 0.7f*game.height, 0.075f*game.width, 0.075f*game.width);
         redCell = new AdvSprite(game.atlas.createSprite("red"), 0.8f*game.width, 0.3f*game.height, 0.15f*game.width, 0.15f*game.width);
         redCell.setColor(Color.GRAY);
@@ -396,7 +408,7 @@ class Tutorial implements Screen {
         stage.addActor(platelet);
     }
     private void initGame4 () {
-        player = new AdvSprite(game.atlas.createSprite("white"), 0.05f*game.width, 0.7f*game.height, 0.15f*game.width, 0.15f*game.width);
+        player = new AdvSprite(game.atlas.createSprite("white", Technical.curSkin), 0.05f*game.width, 0.7f*game.height, 0.15f*game.width, 0.15f*game.width);
         lymph = new AdvSprite(game.atlas.createSprite("lymphocyte", rand.nextInt(7) + 1), 0.05f*game.width, 0.3f*game.height, 0.15f*game.width, 0.15f*game.width);
         virus = new AdvSprite(game.atlas.createSprite("virus", rand.nextInt(19) + 1), 0.8f*game.width, 0.5f*game.height, 0.15f*game.width, 0.15f*game.width);
 
@@ -405,7 +417,7 @@ class Tutorial implements Screen {
         stage.addActor(lymph);
     }
     private void initGameBoss () {
-        player = new AdvSprite(game.atlas.createSprite("white"), 0.05f*game.width, 0.3f*game.height, 0.15f*game.width, 0.15f*game.width);
+        player = new AdvSprite(game.atlas.createSprite("white", Technical.curSkin), 0.05f*game.width, 0.3f*game.height, 0.15f*game.width, 0.15f*game.width);
         lymph = new AdvSprite(game.atlas.createSprite("lymphocyte", rand.nextInt(7) + 1), 0.8f*game.width, 0.3f*game.height, 0.15f*game.width, 0.15f*game.width);
         platelet = new AdvSprite(game.atlas.createSprite("yellow"), 0.05f*game.width, 0.35f*game.height, 0.075f*game.width, 0.075f*game.width);
         virus = new AdvSprite(game.atlas.createSprite("virus", 19 + curLevel / 20), 0.25f*game.width, 0.55f*game.height, 0.5f*game.width, 0.5f*game.width);
@@ -704,8 +716,12 @@ class Tutorial implements Screen {
 
     @Override
     public void pause() {
-        game.prefs.putInteger("max_level", Menu.maxLevel);
-        game.prefs.putBoolean("is_sound_on", Menu.isSoundOn);
+        game.prefs.putInteger("max_level", Technical.maxLevel);
+        game.prefs.putInteger("current_skin", Technical.curSkin);
+        game.prefs.putInteger("money", Technical.money);
+        game.prefs.putInteger("time_level", Technical.timeLevel);
+        game.prefs.putInteger("direction_level", Technical.dirLevel);
+        game.prefs.putBoolean("is_sound_on", Technical.isSoundOn);
         game.prefs.flush();
         if (game.sounds.mainTheme.isPlaying()) {
             game.sounds.mainTheme.pause();
@@ -715,7 +731,7 @@ class Tutorial implements Screen {
 
     @Override
     public void resume() {
-        if (!game.sounds.mainTheme.isPlaying()) if (Menu.isSoundOn) game.sounds.mainTheme.play();
+        if (!game.sounds.mainTheme.isPlaying()) if (Technical.isSoundOn) game.sounds.mainTheme.play();
     }
 
     @Override
@@ -725,8 +741,12 @@ class Tutorial implements Screen {
 
     @Override
     public void dispose() {
-        game.prefs.putInteger("max_level", Menu.maxLevel);
-        game.prefs.putBoolean("is_sound_on", Menu.isSoundOn);
+        game.prefs.putInteger("max_level", Technical.maxLevel);
+        game.prefs.putInteger("current_skin", Technical.curSkin);
+        game.prefs.putInteger("money", Technical.money);
+        game.prefs.putInteger("time_level", Technical.timeLevel);
+        game.prefs.putInteger("direction_level", Technical.dirLevel);
+        game.prefs.putBoolean("is_sound_on", Technical.isSoundOn);
         game.prefs.flush();
     }
 }

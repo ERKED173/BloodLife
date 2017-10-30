@@ -33,6 +33,7 @@ class Records implements Screen {
     private LinkedList<AdvSprite> advSprites;
 
     private int allScore = 0;
+    private int allStars = 0;
 
     private String[] text;
 
@@ -44,7 +45,7 @@ class Records implements Screen {
     public void show() {
         game.sounds.mainTheme.setLooping(true);
         game.sounds.mainTheme.setVolume(0.25f);
-        if (Menu.isSoundOn) game.sounds.mainTheme.play();
+        if (Technical.isSoundOn) game.sounds.mainTheme.play();
 
         rand = new RandomXS128();
         stage = new Stage();
@@ -57,11 +58,15 @@ class Records implements Screen {
 
         buttonInit();
 
-        for (int i = 1; i <= 200; i++) allScore += game.prefs.getInteger("level_score_" + i, 0);
+        for (int i = 1; i <= 200; i++) {
+            allScore += game.prefs.getInteger("level_score_" + i, 0);
+            allStars += game.prefs.getInteger("level_star_" + i, 0);
+        }
 
-        text = new String[2];
+        text = new String[3];
         text[0] = game.textSystem.get("rcrds");
         text[1] = game.textSystem.get("allsuk");
+        text[2] = game.textSystem.get("death");
 
         obf = new Obfuscation(game.atlas.createSprite("obfuscation"), true);
         stage.addActor(obf);
@@ -96,22 +101,34 @@ class Records implements Screen {
         stage.draw();
 
         if(Gdx.input.isKeyJustPressed(Input.Keys.BACK)){
-            game.prefs.putInteger("max_level", Menu.maxLevel);
-            game.prefs.putBoolean("is_sound_on", Menu.isSoundOn);
+            game.prefs.putInteger("max_level", Technical.maxLevel);
+            game.prefs.putInteger("current_skin", Technical.curSkin);
+            game.prefs.putInteger("money", Technical.money);
+            game.prefs.putInteger("time_level", Technical.timeLevel);
+            game.prefs.putInteger("direction_level", Technical.dirLevel);
+            game.prefs.putBoolean("is_sound_on", Technical.isSoundOn);
             game.prefs.flush();
             dispose();
             Gdx.app.exit();
         }
         if(Gdx.input.isKeyJustPressed(Input.Keys.MENU)){
-            game.prefs.putInteger("max_level", Menu.maxLevel);
-            game.prefs.putBoolean("is_sound_on", Menu.isSoundOn);
+            game.prefs.putInteger("max_level", Technical.maxLevel);
+            game.prefs.putInteger("current_skin", Technical.curSkin);
+            game.prefs.putInteger("money", Technical.money);
+            game.prefs.putInteger("time_level", Technical.timeLevel);
+            game.prefs.putInteger("direction_level", Technical.dirLevel);
+            game.prefs.putBoolean("is_sound_on", Technical.isSoundOn);
             game.prefs.flush();
             dispose();
             Gdx.app.exit();
         }
         if(Gdx.input.isKeyJustPressed(Input.Keys.HOME)){
-            game.prefs.putInteger("max_level", Menu.maxLevel);
-            game.prefs.putBoolean("is_sound_on", Menu.isSoundOn);
+            game.prefs.putInteger("max_level", Technical.maxLevel);
+            game.prefs.putInteger("current_skin", Technical.curSkin);
+            game.prefs.putInteger("money", Technical.money);
+            game.prefs.putInteger("time_level", Technical.timeLevel);
+            game.prefs.putInteger("direction_level", Technical.dirLevel);
+            game.prefs.putBoolean("is_sound_on", Technical.isSoundOn);
             game.prefs.flush();
             dispose();
             Gdx.app.exit();
@@ -133,7 +150,7 @@ class Records implements Screen {
             @Override
             public void clicked (InputEvent event, float x, float y) {
                 if (!obf.isActive()) {
-                    if (Menu.isSoundOn) game.sounds.click.play();
+                    if (Technical.isSoundOn) game.sounds.click.play();
                     nextStart = true;
                 } else {
                     next.get().setChecked(false);
@@ -202,11 +219,17 @@ class Records implements Screen {
                 0.5f*(game.width - (game.fonts.largeS.getWidth(text[0]))),
                 0.95f*game.height
         );
-        game.fonts.largeS.draw(
+        game.fonts.mediumS.draw(
                 stage.getBatch(),
                 text[1] + ": " + allScore,
-                0.5f*(game.width - (game.fonts.largeS.getWidth(text[1] + ": " + allScore))),
-                0.5f*game.height + 0.5f*game.fonts.largeS.getHeight("A")
+                0.5f*(game.width - (game.fonts.mediumS.getWidth(text[1] + ": " + allScore))),
+                0.5f*game.height + 1.5f*game.fonts.mediumS.getHeight("A")
+        );
+        game.fonts.mediumS.draw(
+                stage.getBatch(),
+                text[2] + ": " + allStars + "/600",
+                0.5f*(game.width - (game.fonts.mediumS.getWidth(text[2] + ": " + allStars + "/600"))),
+                0.5f*game.height - 0.5f*game.fonts.mediumS.getHeight("A")
         );
     }
 
@@ -217,8 +240,12 @@ class Records implements Screen {
 
     @Override
     public void pause() {
-        game.prefs.putInteger("max_level", Menu.maxLevel);
-        game.prefs.putBoolean("is_sound_on", Menu.isSoundOn);
+        game.prefs.putInteger("max_level", Technical.maxLevel);
+        game.prefs.putInteger("current_skin", Technical.curSkin);
+        game.prefs.putInteger("money", Technical.money);
+        game.prefs.putInteger("time_level", Technical.timeLevel);
+        game.prefs.putInteger("direction_level", Technical.dirLevel);
+        game.prefs.putBoolean("is_sound_on", Technical.isSoundOn);
         game.prefs.flush();
         if (game.sounds.mainTheme.isPlaying()) {
             game.sounds.mainTheme.pause();
@@ -228,7 +255,7 @@ class Records implements Screen {
 
     @Override
     public void resume() {
-        if (!game.sounds.mainTheme.isPlaying()) if (Menu.isSoundOn) game.sounds.mainTheme.play();
+        if (!game.sounds.mainTheme.isPlaying()) if (Technical.isSoundOn) game.sounds.mainTheme.play();
     }
 
     @Override
@@ -238,8 +265,12 @@ class Records implements Screen {
 
     @Override
     public void dispose() {
-        game.prefs.putInteger("max_level", Menu.maxLevel);
-        game.prefs.putBoolean("is_sound_on", Menu.isSoundOn);
+        game.prefs.putInteger("max_level", Technical.maxLevel);
+        game.prefs.putInteger("current_skin", Technical.curSkin);
+        game.prefs.putInteger("money", Technical.money);
+        game.prefs.putInteger("time_level", Technical.timeLevel);
+        game.prefs.putInteger("direction_level", Technical.dirLevel);
+        game.prefs.putBoolean("is_sound_on", Technical.isSoundOn);
         game.prefs.flush();
     }
 }

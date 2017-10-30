@@ -10,7 +10,7 @@ public class Lymphocyte  extends Entity {
 
     @Override
     public void updateLife(float x, float y) {
-        if (rand.nextInt(4) == 0) {
+        if (rand.nextInt(5) == 0) {
             float velX = ((x - getPosition().x) * meter) % 3f * meter;
             float velY = ((y - getPosition().y) * meter) % 3f * meter;
             if (Math.abs(velX) < meter) if (velX > 0f) velX = meter; else velX = -meter;
