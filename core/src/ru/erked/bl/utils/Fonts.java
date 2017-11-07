@@ -18,6 +18,8 @@ public class Fonts {
     public BLFont exSmall;
     public BLFont exSmallB;
     public BLFont exSmallS;
+    public BLFont exxSmall;
+    public BLFont exxSmallS;
 
     public Fonts (String FONT_CHARS) {
         large  = new BLFont("fonts/regular.otf", 13, Color.WHITE, FONT_CHARS);
@@ -31,7 +33,9 @@ public class Fonts {
         smallS = new BLFont("fonts/regular.otf", 21, Color.WHITE, 2, 2, Color.BLACK, FONT_CHARS);
         exSmall  = new BLFont("fonts/regular.otf", 24, Color.WHITE, FONT_CHARS);
         exSmallB = new BLFont("fonts/regular.otf", 24, Color.WHITE, 2, Color.BLACK, FONT_CHARS);
-        exSmallS = new BLFont("fonts/regular.otf", 24, Color.WHITE, 1, 1, Color.BLACK, FONT_CHARS);
+        exSmallS = new BLFont("fonts/regular.otf", 24, Color.WHITE, 2, 2, Color.BLACK, FONT_CHARS);
+        exxSmall = new BLFont("fonts/regular.otf", 30, Color.WHITE, FONT_CHARS);
+        exxSmallS = new BLFont("fonts/regular.otf", 30, Color.WHITE, 2, 2, Color.BLACK, FONT_CHARS);
     }
 
 }

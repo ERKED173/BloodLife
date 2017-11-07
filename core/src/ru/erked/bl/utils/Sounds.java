@@ -12,6 +12,7 @@ public class Sounds {
     public Sound star;
     public Sound cash;
     public Sound bonus;
+    public Sound swim;
     public Music mainTheme;
 
     public Sounds () {
@@ -22,6 +23,7 @@ public class Sounds {
         heal = Gdx.audio.newSound(Gdx.files.internal("sounds/sound/heal.wav"));
         star = Gdx.audio.newSound(Gdx.files.internal("sounds/sound/star.wav"));
         bonus = Gdx.audio.newSound(Gdx.files.internal("sounds/sound/bonus.wav"));
+        swim = Gdx.audio.newSound(Gdx.files.internal("sounds/sound/swim.wav"));
     }
 
 }

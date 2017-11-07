@@ -42,6 +42,7 @@ class Menu implements Screen {
     private BLButton shop;
 
     private BLButton cheat;
+    private BLButton endless;
 
     private BLButton[] levels;
     private static int page = 0;
@@ -63,14 +64,14 @@ class Menu implements Screen {
     @Override
     public void show() {
         game.sounds.mainTheme.setLooping(true);
-        game.sounds.mainTheme.setVolume(0.25f);
+        game.sounds.mainTheme.setVolume(0.1f);
         if (Technical.isSoundOn) game.sounds.mainTheme.play();
 
         rand = new RandomXS128();
         stage = new Stage();
         Gdx.input.setInputProcessor(stage);
 
-        advSprites = new LinkedList<AdvSprite>();
+        advSprites = new LinkedList<>();
         for (int i = 0; i < rand.nextInt(10) + 20; i++) {
             addPart();
         }
@@ -91,12 +92,18 @@ class Menu implements Screen {
             stage.addActor(stars[i]);
         }
 
-        text = new String[5];
+        text = new String[11];
         text[0] = game.textSystem.get("devs");
         text[1] = game.textSystem.get("my_name");
         text[2] = game.textSystem.get("cnt");
         text[3] = game.textSystem.get("my_mail");
         text[4] = game.textSystem.get("versus");
+        text[5] = game.textSystem.get("music_1");
+        text[6] = game.textSystem.get("music_2");
+        text[7] = game.textSystem.get("music_3");
+        text[8] = game.textSystem.get("music_4");
+        text[9] = game.textSystem.get("music_5");
+        text[10] = game.textSystem.get("music_6");
 
         obf = new Obfuscation(game.atlas.createSprite("obfuscation"), true);
         stage.addActor(obf);
@@ -111,7 +118,10 @@ class Menu implements Screen {
             obf.deactivate(0.5f, delta);
         } else if (nextStart) {
             if (obf.isActive()) {
-                game.setScreen(new Tutorial(game, curLevel));
+                if (curLevel != 101)
+                    game.setScreen(new Tutorial(game, curLevel));
+                else
+                    game.setScreen(new Space(game, curLevel));
             } else {
                 obf.activate(0.5f, delta);
             }
@@ -163,6 +173,7 @@ class Menu implements Screen {
             records.get().setVisible(false);
             shop.get().setVisible(false);
             cheat.get().setVisible(false);
+            endless.get().setVisible(false);
             right.get().setVisible(false);
             sound.get().setVisible(true);
         } else if (isLevel) {
@@ -211,6 +222,7 @@ class Menu implements Screen {
             records.get().setVisible(true);
             shop.get().setVisible(true);
             cheat.get().setVisible(true);
+            if (Technical.maxLevel > 100) endless.get().setVisible(true);
             right.get().setVisible(true);
         } else {
             for (BLButton b : levels) b.get().setVisible(false);
@@ -219,6 +231,7 @@ class Menu implements Screen {
             records.get().setVisible(false);
             shop.get().setVisible(false);
             cheat.get().setVisible(false);
+            endless.get().setVisible(false);
             right.get().setVisible(false);
             sound.get().setVisible(false);
             start.get().setVisible(true);
@@ -483,7 +496,7 @@ class Menu implements Screen {
         right.get().addListener(new ClickListener(){
             @Override
             public void clicked (InputEvent event, float x, float y) {
-                if (!obf.isActive() && isLevel && page < 9) {
+                if (!obf.isActive() && isLevel && page < 4) {
                     page++;
                     right.get().setChecked(false);
                     if (Technical.isSoundOn) game.sounds.click.play();
@@ -537,11 +550,35 @@ class Menu implements Screen {
             }
         });
         stage.addActor(shop.get());
+        endless = new BLButton(
+                game,
+                0.5f*(game.width - 2f * sizeXY),
+                0.65f*game.height - 5f*1.25f*sizeXY,
+                2f * sizeXY,
+                game.fonts.exxSmall.getFont(),
+                game.textSystem.get("endline"),
+                1,
+                "endless_button"
+        );
+        endless.get().addListener(new ClickListener(){
+            @Override
+            public void clicked (InputEvent event, float x, float y) {
+                if (!obf.isActive() && isLevel) {
+                    if (Technical.isSoundOn) game.sounds.click.play();
+                    curLevel = 201;
+                    nextStart = true;
+                } else {
+                    endless.get().setChecked(false);
+                }
+            }
+        });
+        stage.addActor(endless.get());
+        endless.get().setVisible(false);
 
         //
         cheat = new BLButton(
                 game,
-                0.5f*(game.width - sizeXY),
+                0.05f*game.width,
                 0.65f*game.height - 5f*1.25f*sizeXY,
                 sizeXY,
                 game.fonts.large.getFont(),
@@ -561,7 +598,7 @@ class Menu implements Screen {
                 }
             }
         });
-        stage.addActor(cheat.get());
+        //stage.addActor(cheat.get());
         //
     }
 
@@ -618,36 +655,72 @@ class Menu implements Screen {
     }
 
     private void drawText () {
-        game.fonts.largeS.draw(
+        game.fonts.mediumS.draw(
                 stage.getBatch(),
                 text[0],
-                0.5f * (game.width - game.fonts.largeS.getWidth(text[0])),
-                0.5f * (game.height + 10.0f*game.fonts.largeS.getWidth("A"))
+                0.5f * (game.width - game.fonts.mediumS.getWidth(text[0])),
+                0.5f * (game.height + 14.0f*game.fonts.mediumS.getHeight("A"))
         );
-        game.fonts.largeS.draw(
+        game.fonts.mediumS.draw(
                 stage.getBatch(),
                 text[1],
-                0.5f * (game.width - game.fonts.largeS.getWidth(text[1])),
-                0.5f * (game.height + 6.0f*game.fonts.largeS.getWidth("A"))
+                0.5f * (game.width - game.fonts.mediumS.getWidth(text[1])),
+                0.5f * (game.height + 10.0f*game.fonts.mediumS.getHeight("A"))
         );
-        game.fonts.largeS.draw(
+        game.fonts.mediumS.draw(
                 stage.getBatch(),
                 text[2],
-                0.5f * (game.width - game.fonts.largeS.getWidth(text[2])),
+                0.5f * (game.width - game.fonts.mediumS.getWidth(text[2])),
 
-                0.5f * (game.height - 3.0f*game.fonts.largeS.getWidth("A"))
+                0.5f * (game.height + 3.0f*game.fonts.mediumS.getHeight("A"))
         );
-        game.fonts.largeS.draw(
+        game.fonts.mediumS.draw(
                 stage.getBatch(),
                 text[3],
-                0.5f * (game.width - game.fonts.largeS.getWidth(text[3])),
-                0.5f * (game.height - 7.0f*game.fonts.largeS.getWidth("A"))
+                0.5f * (game.width - game.fonts.mediumS.getWidth(text[3])),
+                0.5f * (game.height - 1.0f*game.fonts.mediumS.getHeight("A"))
         );
         game.fonts.smallS.draw(
                 stage.getBatch(),
                 text[4],
                 0.005f * game.width,
-                1.25f*game.fonts.smallS.getWidth("A")
+                1.25f*game.fonts.smallS.getHeight("A")
+        );
+        game.fonts.smallS.draw(
+                stage.getBatch(),
+                text[5],
+                0.5f * (game.width - game.fonts.smallS.getWidth(text[5])),
+                0.5f * (game.height - 8.0f*game.fonts.smallS.getHeight("A"))
+        );
+        game.fonts.smallS.draw(
+                stage.getBatch(),
+                text[6],
+                0.5f * (game.width - game.fonts.smallS.getWidth(text[6])),
+                0.5f * (game.height - 11.0f*game.fonts.smallS.getHeight("A"))
+        );
+        game.fonts.smallS.draw(
+                stage.getBatch(),
+                text[7],
+                0.5f * (game.width - game.fonts.smallS.getWidth(text[7])),
+                0.5f * (game.height - 14.0f*game.fonts.smallS.getHeight("A"))
+        );
+        game.fonts.exSmallS.draw(
+                stage.getBatch(),
+                text[8],
+                0.5f * (game.width - game.fonts.exSmallS.getWidth(text[8])),
+                0.5f * (game.height - 19.0f*game.fonts.exSmallS.getHeight("A"))
+        );
+        game.fonts.exSmallS.draw(
+                stage.getBatch(),
+                text[9],
+                0.5f * (game.width - game.fonts.exSmallS.getWidth(text[9])),
+                0.5f * (game.height - 22.0f*game.fonts.exSmallS.getHeight("A"))
+        );
+        game.fonts.exxSmallS.draw(
+                stage.getBatch(),
+                text[10],
+                0.5f * (game.width - game.fonts.exxSmallS.getWidth(text[10])),
+                0.5f * (game.height - 25.0f*game.fonts.exSmallS.getHeight("A"))
         );
     }
 

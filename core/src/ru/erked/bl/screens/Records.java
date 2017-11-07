@@ -44,14 +44,14 @@ class Records implements Screen {
     @Override
     public void show() {
         game.sounds.mainTheme.setLooping(true);
-        game.sounds.mainTheme.setVolume(0.25f);
+        game.sounds.mainTheme.setVolume(0.1f);
         if (Technical.isSoundOn) game.sounds.mainTheme.play();
 
         rand = new RandomXS128();
         stage = new Stage();
         Gdx.input.setInputProcessor(stage);
 
-        advSprites = new LinkedList<AdvSprite>();
+        advSprites = new LinkedList<>();
         for (int i = 0; i < rand.nextInt(10) + 20; i++) {
             addPart();
         }
@@ -63,10 +63,11 @@ class Records implements Screen {
             allStars += game.prefs.getInteger("level_star_" + i, 0);
         }
 
-        text = new String[3];
+        text = new String[4];
         text[0] = game.textSystem.get("rcrds");
         text[1] = game.textSystem.get("allsuk");
         text[2] = game.textSystem.get("death");
+        text[3] = game.textSystem.get("endlscore");
 
         obf = new Obfuscation(game.atlas.createSprite("obfuscation"), true);
         stage.addActor(obf);
@@ -227,9 +228,15 @@ class Records implements Screen {
         );
         game.fonts.mediumS.draw(
                 stage.getBatch(),
-                text[2] + ": " + allStars + "/600",
-                0.5f*(game.width - (game.fonts.mediumS.getWidth(text[2] + ": " + allStars + "/600"))),
+                text[2] + ": " + allStars + "/300",
+                0.5f*(game.width - (game.fonts.mediumS.getWidth(text[2] + ": " + allStars + "/300"))),
                 0.5f*game.height - 0.5f*game.fonts.mediumS.getHeight("A")
+        );
+        game.fonts.mediumS.draw(
+                stage.getBatch(),
+                text[3] + " " + game.prefs.getInteger("level_score_101", 0),
+                0.5f*(game.width - (game.fonts.mediumS.getWidth(text[3] + " " + game.prefs.getInteger("level_score_101", 0)))),
+                0.5f*game.height - 2.5f*game.fonts.mediumS.getHeight("A")
         );
     }
 

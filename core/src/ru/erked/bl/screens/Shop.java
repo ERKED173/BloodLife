@@ -54,7 +54,7 @@ class Shop implements Screen {
     @Override
     public void show() {
         game.sounds.mainTheme.setLooping(true);
-        game.sounds.mainTheme.setVolume(0.25f);
+        game.sounds.mainTheme.setVolume(0.1f);
         if (Technical.isSoundOn) game.sounds.mainTheme.play();
 
         rand = new RandomXS128();
@@ -141,7 +141,7 @@ class Shop implements Screen {
         for (int i = 0; i < 10; ++i) {
             bonusLevel[i] = new AdvSprite(
                     game.atlas.createSprite("star"),
-                    0.225f * game.width + (i % 5) * (0.1f * game.width),
+                    0.2215f * game.width + (i % 5) * (0.1f * game.width),
                     0.755f * game.height - (i / 5) * (0.15f * game.height),
                     0.075f * game.width,
                     0.075f * game.width
@@ -195,7 +195,7 @@ class Shop implements Screen {
             if (game.prefs.getBoolean("skin_" + (i + 1 + page), false)) {
                 skinBuy[i].get().setText(text[2]);
             } else {
-                skinBuy[i].get().setText((10 * (page  + i + 1)) + "         ");
+                skinBuy[i].get().setText((10 * (page + i)) + "         ");
                 gCardsSkins[i].setVisible(true);
             }
 
@@ -233,11 +233,11 @@ class Shop implements Screen {
         }
 
         if (Technical.timeLevel < 5)
-            bonusBuy[0].get().setText(((Technical.timeLevel + 1) * 25) + "         ");
+            bonusBuy[0].get().setText(((Technical.timeLevel + 1) * 10) + "         ");
         else
             bonusBuy[0].get().setText("---");
         if (Technical.dirLevel < 5)
-            bonusBuy[1].get().setText(((Technical.dirLevel + 1) * 25) + "         ");
+            bonusBuy[1].get().setText(((Technical.dirLevel + 1) * 10) + "         ");
         else
             bonusBuy[1].get().setText("---");
 
@@ -383,9 +383,9 @@ class Shop implements Screen {
                             if (Technical.isSoundOn) game.sounds.click.play();
                             Technical.curSkin = page + TEMP_I + 1;
                         } else {
-                            if (Technical.money  >= 10 * (page  + TEMP_I + 1)) {
+                            if (Technical.money  >= 10 * (page  + TEMP_I)) {
                                 if (Technical.isSoundOn) game.sounds.cash.play();
-                                Technical.money -= 10 * (page  + TEMP_I + 1);
+                                Technical.money -= 10 * (page  + TEMP_I);
                                 game.prefs.putBoolean("skin_" + (page  + TEMP_I + 1), true);
                                 game.prefs.flush();
                                 skins[page  + TEMP_I].sprite = game.atlas.createSprite("white", page + TEMP_I + 1);
@@ -414,9 +414,9 @@ class Shop implements Screen {
             @Override
             public void clicked (InputEvent event, float x, float y) {
                 if (!obf.isActive()) {
-                    if (Technical.timeLevel < 5 && Technical.money >= (Technical.timeLevel + 1) * 25) {
+                    if (Technical.timeLevel < 5 && Technical.money >= (Technical.timeLevel + 1) * 10) {
                         if (Technical.isSoundOn) game.sounds.cash.play();
-                        Technical.money -= (Technical.timeLevel + 1) * 25;
+                        Technical.money -= (Technical.timeLevel + 1) * 10;
                         Technical.timeLevel++;
                     }
                     bonusBuy[0].get().setChecked(false);
@@ -440,9 +440,9 @@ class Shop implements Screen {
             @Override
             public void clicked (InputEvent event, float x, float y) {
                 if (!obf.isActive()) {
-                    if (Technical.dirLevel < 5 && Technical.money >= (Technical.dirLevel + 1) * 25) {
+                    if (Technical.dirLevel < 5 && Technical.money >= (Technical.dirLevel + 1) * 10) {
                         if (Technical.isSoundOn) game.sounds.cash.play();
-                        Technical.money -= (Technical.dirLevel + 1) * 25;
+                        Technical.money -= (Technical.dirLevel + 1) * 10;
                         Technical.dirLevel++;
                     }
                     bonusBuy[1].get().setChecked(false);

@@ -59,12 +59,12 @@ class Results implements Screen {
     @Override
     public void show() {
         game.sounds.mainTheme.setLooping(true);
-        game.sounds.mainTheme.setVolume(0.25f);
+        game.sounds.mainTheme.setVolume(0.1f);
         if (Technical.isSoundOn) game.sounds.mainTheme.play();
 
         oldStars = game.prefs.getInteger("level_star_" + curLevel, 0);
         prevScore = game.prefs.getInteger("level_score_" + curLevel, 0);
-        game.prefs.putInteger("level_star_" + curLevel, starScore);
+        if (oldStars < starScore) game.prefs.putInteger("level_star_" + curLevel, starScore);
 
         rand = new RandomXS128();
         stage = new Stage();
@@ -110,7 +110,10 @@ class Results implements Screen {
                 0.2f * game.width,
                 0.2f * game.width
         );
-        Technical.money += starScore - oldStars;
+        if (curLevel > 4)
+            Technical.money += (starScore - oldStars) + (score / 300);
+        else
+            Technical.money += (starScore - oldStars);
         stage.addActor(money);
 
 
@@ -318,12 +321,19 @@ class Results implements Screen {
                     0.4f*(game.height - 1.25f*game.fonts.mediumS.getHeight("A"))
             );
         }
-        if (oldStars < starScoreCopy) {
+        if (curLevel > 4) {
+            game.fonts.mediumS.draw(
+                    stage.getBatch(),
+                    "+ " + (((starScoreCopy - oldStars) + (score / 300)) + moneyScore),
+                    0.325f * game.width,
+                    0.2f * game.height + 0.1f * game.width + 0.5f * game.fonts.mediumS.getHeight("A")
+            );
+        } else {
             game.fonts.mediumS.draw(
                     stage.getBatch(),
                     "+ " + ((starScoreCopy - oldStars) + moneyScore),
-                    0.325f*game.width,
-                    0.2f*game.height + 0.1f*game.width + 0.5f*game.fonts.mediumS.getHeight("A")
+                    0.325f * game.width,
+                    0.2f * game.height + 0.1f * game.width + 0.5f * game.fonts.mediumS.getHeight("A")
             );
         }
     }

@@ -26,6 +26,7 @@ class Tutorial implements Screen {
     private MainBL game;
     private Obfuscation obf;
     private boolean nextStart = false;
+    private boolean backStart = false;
 
     private AdvSprite finger;
     private AdvSprite player;
@@ -35,11 +36,15 @@ class Tutorial implements Screen {
     private AdvSprite platelet;
 
     private BLButton next;
+    private BLButton back;
 
     private RandomXS128 rand;
     private LinkedList<AdvSprite> advSprites;
 
     private int curLevel;
+    private int curScore;
+
+    private String[] text;
 
     Tutorial (MainBL game, int curLevel) {
         this.game = game;
@@ -49,14 +54,14 @@ class Tutorial implements Screen {
     @Override
     public void show() {
         game.sounds.mainTheme.setLooping(true);
-        game.sounds.mainTheme.setVolume(0.25f);
+        game.sounds.mainTheme.setVolume(0.1f);
         if (Technical.isSoundOn) game.sounds.mainTheme.play();
 
         rand = new RandomXS128();
         stage = new Stage();
         Gdx.input.setInputProcessor(stage);
 
-        advSprites = new LinkedList<AdvSprite>();
+        advSprites = new LinkedList<>();
         for (int i = 0; i < rand.nextInt(10) + 20; i++) {
             addPart();
         }
@@ -65,7 +70,7 @@ class Tutorial implements Screen {
             type0Init();
         } else if (curLevel == 2) {
             type1Init();
-        } else if (curLevel % 20 == 0) {
+        } else if (curLevel % 10 == 0) {
             initGameBoss();
         } else {
             switch (curLevel % 4) {
@@ -91,6 +96,17 @@ class Tutorial implements Screen {
 
         obf = new Obfuscation(game.atlas.createSprite("obfuscation"), true);
         stage.addActor(obf);
+
+        curScore = game.prefs.getInteger("level_score_" + curLevel, 0);
+
+        text = new String[10];
+        text[0] = game.textSystem.get("cursk");
+        text[1] = game.textSystem.get("movit");
+        text[2] = game.textSystem.get("atck");
+        text[3] = game.textSystem.get("fst");
+        text[4] = game.textSystem.get("rescue");
+        text[5] = game.textSystem.get("togh");
+        text[6] = game.textSystem.get("buch");
     }
 
     @Override
@@ -98,11 +114,42 @@ class Tutorial implements Screen {
         Gdx.gl.glClearColor(220f/255f, 150f/255f, 180f/255f, 0f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        if(obf.isActive() && !nextStart){
+        if(obf.isActive() && !nextStart  && !backStart){
             obf.deactivate(0.5f, delta);
         } else if (nextStart) {
             if (obf.isActive()) {
                 game.setScreen(new Space(game, curLevel));
+            } else {
+                if (curLevel == 2) {
+                    virus.addAction(Actions.alpha(0f, 0.25f));
+                }
+                if (curLevel > 2) {
+                    switch (curLevel % 4) {
+                        case 1: {
+                            virus.addAction(Actions.alpha(0f, 0.25f));
+                            break;
+                        }
+                        case 2: {
+                            virus.addAction(Actions.alpha(0f, 0.25f));
+                            lymph.addAction(Actions.alpha(0f, 0.25f));
+                            break;
+                        }
+                        case 3: {
+
+                            break;
+                        }
+                        case 0: {
+                            virus.addAction(Actions.alpha(0f, 0.25f));
+                            lymph.addAction(Actions.alpha(0f, 0.25f));
+                            break;
+                        }
+                    }
+                }
+                obf.activate(0.5f, delta);
+            }
+        } else if (backStart) {
+            if (obf.isActive()) {
+                game.setScreen(new Menu(game, true));
             } else {
                 if (curLevel == 2) {
                     virus.addAction(Actions.alpha(0f, 0.25f));
@@ -205,6 +252,29 @@ class Tutorial implements Screen {
             }
         });
         stage.addActor(next.get());
+
+        back = new BLButton(
+                game,
+                0.025f*game.width,
+                0.025f*game.width,
+                0.3f * game.width,
+                game.fonts.small.getFont(),
+                game.textSystem.get("back_button"),
+                1,
+                "back_button"
+        );
+        back.get().addListener(new ClickListener(){
+            @Override
+            public void clicked (InputEvent event, float x, float y) {
+                if (!obf.isActive()) {
+                    if (Technical.isSoundOn) game.sounds.click.play();
+                    backStart = true;
+                } else {
+                    back.get().setChecked(false);
+                }
+            }
+        });
+        stage.addActor(back.get());
     }
 
     private void addPart () {
@@ -281,7 +351,7 @@ class Tutorial implements Screen {
             drawType0();
         } else if (curLevel == 2) {
             drawType1();
-        } else if (curLevel % 20 == 0) {
+        } else if (curLevel % 10 == 0) {
             drawGameBoss();
         } else {
             switch (curLevel % 4) {
@@ -303,6 +373,14 @@ class Tutorial implements Screen {
                 }
             }
         }
+        if (curLevel > 4) {
+            game.fonts.smallS.draw(
+                    stage.getBatch(),
+                    text[0] + ": " + curScore,
+                    0.5f*(game.width - game.fonts.smallS.getWidth(text[0] + ": " + curScore)),
+                    0.15f*game.height
+            );
+        }
     }
     private void drawType0 () {
         if (!finger.hasActions()) {
@@ -321,8 +399,8 @@ class Tutorial implements Screen {
 
         game.fonts.mediumS.draw(
                 stage.getBatch(),
-                game.textSystem.get("movit"),
-                0.5f*(game.width - game.fonts.mediumS.getWidth(game.textSystem.get("movit"))),
+                text[1],
+                0.5f*(game.width - game.fonts.mediumS.getWidth(text[1])),
                 0.95f*game.height
         );
     }
@@ -373,8 +451,8 @@ class Tutorial implements Screen {
 
         game.fonts.mediumS.draw(
                 stage.getBatch(),
-                game.textSystem.get("atck"),
-                0.5f*(game.width - game.fonts.mediumS.getWidth(game.textSystem.get("atck"))),
+                text[2],
+                0.5f*(game.width - game.fonts.mediumS.getWidth(text[2])),
                 0.95f*game.height
         );
     }
@@ -420,7 +498,7 @@ class Tutorial implements Screen {
         player = new AdvSprite(game.atlas.createSprite("white", Technical.curSkin), 0.05f*game.width, 0.3f*game.height, 0.15f*game.width, 0.15f*game.width);
         lymph = new AdvSprite(game.atlas.createSprite("lymphocyte", rand.nextInt(7) + 1), 0.8f*game.width, 0.3f*game.height, 0.15f*game.width, 0.15f*game.width);
         platelet = new AdvSprite(game.atlas.createSprite("yellow"), 0.05f*game.width, 0.35f*game.height, 0.075f*game.width, 0.075f*game.width);
-        virus = new AdvSprite(game.atlas.createSprite("virus", 19 + curLevel / 20), 0.25f*game.width, 0.55f*game.height, 0.5f*game.width, 0.5f*game.width);
+        virus = new AdvSprite(game.atlas.createSprite("virus", 19 + curLevel / 10), 0.25f*game.width, 0.55f*game.height, 0.5f*game.width, 0.5f*game.width);
 
         stage.addActor(player);
         stage.addActor(virus);
@@ -475,8 +553,8 @@ class Tutorial implements Screen {
 
         game.fonts.mediumS.draw(
                 stage.getBatch(),
-                game.textSystem.get("atck"),
-                0.5f*(game.width - game.fonts.mediumS.getWidth(game.textSystem.get("atck"))),
+                text[2],
+                0.5f*(game.width - game.fonts.mediumS.getWidth(text[2])),
                 0.95f*game.height
         );
     }
@@ -524,8 +602,8 @@ class Tutorial implements Screen {
 
         game.fonts.mediumS.draw(
                 stage.getBatch(),
-                game.textSystem.get("fst"),
-                0.5f*(game.width - game.fonts.mediumS.getWidth(game.textSystem.get("fst"))),
+                text[3],
+                0.5f*(game.width - game.fonts.mediumS.getWidth(text[3])),
                 0.95f*game.height
         );
     }
@@ -580,8 +658,8 @@ class Tutorial implements Screen {
 
         game.fonts.mediumS.draw(
                 stage.getBatch(),
-                game.textSystem.get("rescue"),
-                0.5f*(game.width - game.fonts.mediumS.getWidth(game.textSystem.get("rescue"))),
+                text[4],
+                0.5f*(game.width - game.fonts.mediumS.getWidth(text[4])),
                 0.95f*game.height
         );
     }
@@ -634,8 +712,8 @@ class Tutorial implements Screen {
 
         game.fonts.mediumS.draw(
                 stage.getBatch(),
-                game.textSystem.get("togh"),
-                0.5f*(game.width - game.fonts.mediumS.getWidth(game.textSystem.get("togh"))),
+                text[5],
+                0.5f*(game.width - game.fonts.mediumS.getWidth(text[5])),
                 0.95f*game.height
         );
     }
@@ -703,8 +781,8 @@ class Tutorial implements Screen {
 
         game.fonts.mediumS.draw(
                 stage.getBatch(),
-                game.textSystem.get("buch"),
-                0.5f*(game.width - game.fonts.mediumS.getWidth(game.textSystem.get("buch"))),
+                text[6],
+                0.5f*(game.width - game.fonts.mediumS.getWidth(text[6])),
                 0.95f*game.height
         );
     }

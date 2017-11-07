@@ -104,19 +104,19 @@ class Space implements Screen, GestureListener {
         spec = new Spectator(worldWidth, worldHeight);
         spec.setPosition(10f, 10f);
         world = new World(new Vector2(0, 0), true);
-        redCells = new LinkedList<Entity>();
-        viruses = new LinkedList<Entity>();
-        lymphocytes = new LinkedList<Entity>();
-        platelets = new LinkedList<Entity>();
-        bounds = new LinkedList<Bound>();
-        partSpec = new LinkedList<AdvSprite>();
-        bonuses = new LinkedList<Entity>();
+        redCells = new LinkedList<>();
+        viruses = new LinkedList<>();
+        lymphocytes = new LinkedList<>();
+        platelets = new LinkedList<>();
+        bounds = new LinkedList<>();
+        partSpec = new LinkedList<>();
+        bonuses = new LinkedList<>();
     }
 
     @Override
     public void show () {
         game.sounds.mainTheme.setLooping(true);
-        game.sounds.mainTheme.setVolume(0.25f);
+        game.sounds.mainTheme.setVolume(0.1f);
         if (Technical.isSoundOn) game.sounds.mainTheme.play();
 
         Box2D.init();
@@ -154,7 +154,6 @@ class Space implements Screen, GestureListener {
     @Override
     public void render (float delta) {
         Gdx.gl.glClearColor(220f/255f, 150f/255f, 180f/255f, 0f);
-        //Gdx.gl.glClearColor(255f/255f, 255f/255f, 255f/255f, 0f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         buttonUpdate();
@@ -193,18 +192,21 @@ class Space implements Screen, GestureListener {
                 drawText();
                 if (curLevel == 4) {
                     lAndPSign.draw(stage.getBatch(), 1f);
+                    virusSign1.draw(stage.getBatch(), 1f);
                 } else if (curLevel == 3) {
                     redCellSign.draw(stage.getBatch(), 1f);
                 } else if (curLevel == 2) {
                     virusSign1.draw(stage.getBatch(), 1f);
                 } else if (curLevel != 1) {
-                    if (curLevel % 20 != 0) {
+                    if (curLevel % 10 != 0) {
                         switch (curLevel % 4) {
                             case 1: {
                                 virusSign1.draw(stage.getBatch(), 1f);
                                 break;
                             }
                             case 2: {
+                                virusSign1.draw(stage.getBatch(), 1f);
+                                virusSign2.draw(stage.getBatch(), 1f);
                                 playerSign.draw(stage.getBatch(), 1f);
                                 lymphSign.draw(stage.getBatch(), 1f);
                                 break;
@@ -214,6 +216,7 @@ class Space implements Screen, GestureListener {
                                 break;
                             }
                             case 0: {
+                                virusSign1.draw(stage.getBatch(), 1f);
                                 lAndPSign.draw(stage.getBatch(), 1f);
                                 break;
                             }
@@ -243,7 +246,7 @@ class Space implements Screen, GestureListener {
                 } else if (curLevel == 2) {
                     virusSign1.setVisible(false);
                 } else if (curLevel != 1) {
-                    if (curLevel % 20 != 0) {
+                    if (curLevel % 10 != 0) {
                         switch (curLevel % 4) {
                             case 1: {
                                 virusSign1.setVisible(false);
@@ -261,8 +264,8 @@ class Space implements Screen, GestureListener {
                                 break;
                             }
                             case 0: {
-                                lAndPSign.setVisible(false);
                                 virusSign1.setVisible(false);
+                                lAndPSign.setVisible(false);
                                 break;
                             }
                         }
@@ -282,7 +285,7 @@ class Space implements Screen, GestureListener {
             } else if (curLevel == 2) {
                 virusSign1.setVisible(false);
             } else if (curLevel != 1) {
-                if (curLevel % 20 != 0) {
+                if (curLevel % 10 != 0) {
                     switch (curLevel % 4) {
                         case 1: {
                             virusSign1.setVisible(false);
@@ -331,30 +334,48 @@ class Space implements Screen, GestureListener {
                     if (Technical.maxLevel == curLevel) Technical.maxLevel++;
                     score = (int)((score + (timer / 6)) - (score + (timer / 6)) % 10);
                     if (curLevel > 4) {
-                        switch (curLevel % 4) {
-                            case 1: {
-                                if ((float) timer / (float) givenTime >= 0.15f - (float) curLevel / 2000f) stars++;
-                                if ((float) timer / (float) givenTime >= 0.3f - (float) curLevel / 2000f) stars++;
-                                if ((float) timer / (float) givenTime >= 0.45f - (float) curLevel / 2000f) stars++;
-                                break;
-                            }
-                            case 2: {
-                                if ((float)playerScore / (lymphScore + 1f) >= 1.1f) stars++;
-                                if ((float)playerScore / (lymphScore + 1f) >= 1.2f) stars++;
-                                if ((float)playerScore / (lymphScore + 1f) >= 1.3f) stars++;
-                                break;
-                            }
-                            case 3: {
-                                if ((float) timer / (float) givenTime >= 0.15f - (float) curLevel / 2000f) stars++;
-                                if ((float) timer / (float) givenTime >= 0.3f - (float) curLevel / 2000f) stars++;
-                                if ((float) timer / (float) givenTime >= 0.45f - (float) curLevel / 2000f) stars++;
-                                break;
-                            }
-                            case 0: {
-                                if ((float) timer / (float) givenTime >= 0.15f - (float) curLevel / 2000f) stars++;
-                                if ((float) timer / (float) givenTime >= 0.3f - (float) curLevel / 2000f) stars++;
-                                if ((float) timer / (float) givenTime >= 0.45f - (float) curLevel / 2000f) stars++;
-                                break;
+                        if (curLevel % 10 == 0) {
+                            if ((float) timer / (float) givenTime >= 0.05f - (float) curLevel / 2000f)
+                                stars++;
+                            if ((float) timer / (float) givenTime >= 0.1f - (float) curLevel / 2000f)
+                                stars++;
+                            if ((float) timer / (float) givenTime >= 0.15f - (float) curLevel / 2000f)
+                                stars++;
+                        } else {
+                            switch (curLevel % 4) {
+                                case 1: {
+                                    if ((float) timer / (float) givenTime >= (0.15f - (curLevel / 2000f)))
+                                        stars++;
+                                    if ((float) timer / (float) givenTime >= (0.3f - (curLevel / 2000f)))
+                                        stars++;
+                                    if ((float) timer / (float) givenTime >= (0.45f - (curLevel / 2000f)))
+                                        stars++;
+                                    break;
+                                }
+                                case 2: {
+                                    if ((float) playerScore / (lymphScore + 1f) >= 1.1f) stars++;
+                                    if ((float) playerScore / (lymphScore + 1f) >= 1.2f) stars++;
+                                    if ((float) playerScore / (lymphScore + 1f) >= 1.3f) stars++;
+                                    break;
+                                }
+                                case 3: {
+                                    if ((float) timer / (float) givenTime >= (0.15f - (curLevel / 2000f)))
+                                        stars++;
+                                    if ((float) timer / (float) givenTime >= (0.3f - (curLevel / 2000f)))
+                                        stars++;
+                                    if ((float) timer / (float) givenTime >= (0.45f - (curLevel / 2000f)))
+                                        stars++;
+                                    break;
+                                }
+                                case 0: {
+                                    if ((float) timer / (float) givenTime >= (0.15f - (curLevel / 2000f)))
+                                        stars++;
+                                    if ((float) timer / (float) givenTime >= (0.3f - (curLevel / 2000f)))
+                                        stars++;
+                                    if ((float) timer / (float) givenTime >= (0.45f - (curLevel / 2000f)))
+                                        stars++;
+                                    break;
+                                }
                             }
                         }
                     } else {
@@ -442,9 +463,13 @@ class Space implements Screen, GestureListener {
                     if (!hasPlatelet) playerVsPlatelets(contact);
                     if (hasPlatelet) playerVsRedCells(contact);
                 }
-                if (curLevel % 20 == 0) {
-                    if (!hasPlatelet) playerVsPlatelets(contact);
-                    if (hasPlatelet) playerVsLymph(contact);
+                if (curLevel % 10 == 0) {
+                    boolean hasSick = false;
+                    for (Entity e : lymphocytes) if (e.getName().equals("lymphocyte_sick")) {hasSick = true; break;}
+                    if (hasSick) {
+                        if (!hasPlatelet) playerVsPlatelets(contact);
+                        if (hasPlatelet) playerVsLymph(contact);
+                    }
                 }
                 playerVsBonus(contact);
                 playerVsViruses(contact);
@@ -664,7 +689,7 @@ class Space implements Screen, GestureListener {
                             if (bonus.getLifeTime() == 0) {
                                 score += 10;
                                 if (Technical.isSoundOn) game.sounds.bonus.play(1f, 1.1f - rand.nextFloat() / 5f, 0f);
-                                timer += 60 + Technical.timeLevel * 2 * 60;
+                                timer += 120 + Technical.timeLevel * 60;
                             }
                             break;
                         }
@@ -673,7 +698,7 @@ class Space implements Screen, GestureListener {
                             if (bonus.getLifeTime() == 0) {
                                 score += 10;
                                 if (Technical.isSoundOn) game.sounds.bonus.play(1f, 1.1f - rand.nextFloat() / 5f, 0f);
-                                dirTimer += 60 + Technical.timeLevel * 60;
+                                dirTimer += 120 + Technical.timeLevel * 60;
                             }
                             break;
                         }
@@ -696,7 +721,7 @@ class Space implements Screen, GestureListener {
                             if (bonus.getLifeTime() == 0) {
                                 score += 10;
                                 if (Technical.isSoundOn) game.sounds.bonus.play(1f, 1.1f - rand.nextFloat() / 5f, 0f);
-                                timer += 60 + Technical.timeLevel * 2 * 60;
+                                timer += 120 + Technical.timeLevel * 60;
                             }
                             break;
                         }
@@ -705,7 +730,7 @@ class Space implements Screen, GestureListener {
                             if (bonus.getLifeTime() == 0) {
                                 score += 10;
                                 if (Technical.isSoundOn) game.sounds.bonus.play(1f, 1.1f - rand.nextFloat() / 5f, 0f);
-                                dirTimer += 60 + Technical.timeLevel * 60;
+                                dirTimer += 120 + Technical.timeLevel * 60;
                             }
                             break;
                         }
@@ -808,7 +833,7 @@ class Space implements Screen, GestureListener {
                     break;
                 }
             }
-        } else if (curLevel % 20 != 0) {
+        } else if (curLevel % 10 != 0) {
             switch (curLevel % 4) {
                 case 1: {
                     virusSign1 = new AdvSprite(game.atlas.createSprite("virus", rand.nextInt(5) + 11), 0f, 0f, 0.1f * game.width, 0.1f * game.width);
@@ -920,7 +945,7 @@ class Space implements Screen, GestureListener {
                     break;
                 }
             }
-        } else if (curLevel %  20 != 0) {
+        } else if (curLevel % 10 != 0) {
             switch (curLevel % 4) {
                 case 1: {
                     virusSign1.setPosition(
@@ -1320,10 +1345,10 @@ class Space implements Screen, GestureListener {
         stage.addActor(redCell);
         redCells.addFirst(redCell);
     }
-    private void spawnPlatelet (int hp, Vector2 vec) {
+    private void spawnPlatelet(Vector2 vec) {
         AdvSprite platEnt = new AdvSprite(game.atlas.createSprite("yellow"), 0, 0, 0.5f, 0.5f);
         Entity platSub = new Entity(platEnt, world, 0f, 3f, 0.2f, "platelet");
-        Platelet platelet = new Platelet(platSub, hp);
+        Platelet platelet = new Platelet(platSub, 100);
         platelet.getBody().setTransform(vec.x, vec.y, 0f);
         if (rand.nextInt(2) == 0)
             platelet.getBody().setAngularVelocity(rand.nextFloat() + 0.1f);
@@ -1348,12 +1373,12 @@ class Space implements Screen, GestureListener {
         } else if (type > 15) {
             virusEnt = new AdvSprite(game.atlas.createSprite("virus", type), 0, 0, 2f, 2f);
             virusSub = new Entity(virusEnt, world, 0f, 15f, 0.2f, "virus_super_advanced");
-            hp += 300;
+            hp *= 2;
             speed += 45f;
         } else if (type > 10) {
             virusEnt = new AdvSprite(game.atlas.createSprite("virus", type), 0, 0, 1f, 1f);
             virusSub = new Entity(virusEnt, world, 0f, 5f, 0.2f, "virus_advanced");
-            hp += 150;
+            hp *= 1.5;
             speed += 3f;
         } else {
             virusEnt = new AdvSprite(game.atlas.createSprite("virus", type), 0, 0, 0.5f, 0.5f);
@@ -1375,10 +1400,10 @@ class Space implements Screen, GestureListener {
         stage.addActor(virus);
         viruses.addFirst(virus);
     }
-    private void spawnLymph (int hp, Vector2 vec, boolean isSick) {
+    private void spawnLymph(Vector2 vec, float speed, boolean isSick) {
         AdvSprite lymEntity = new AdvSprite(game.atlas.createSprite("lymphocyte", rand.nextInt(7) + 1), 0, 0, 1f, 1f);
         Entity lymSubject = new Entity(lymEntity, world, 0f, 8f, 0.2f, "lymphocyte");
-        Lymphocyte lymphocyte = new Lymphocyte(lymSubject, hp);
+        Lymphocyte lymphocyte = new Lymphocyte(lymSubject, 1000000, speed);
         lymphocyte.getBody().setTransform(vec.x, vec.y, 0f);
         if (rand.nextInt(2) == 0)
             lymphocyte.getBody().setAngularVelocity(rand.nextFloat() + 0.3f);
@@ -1398,10 +1423,10 @@ class Space implements Screen, GestureListener {
         stage.addActor(lymphocyte);
         lymphocytes.addFirst(lymphocyte);
     }
-    private void spawnGreenBonus (int hp, Vector2 vec) {
+    private void spawnGreenBonus(Vector2 vec) {
         AdvSprite gBonusE = new AdvSprite(game.atlas.createSprite("green_card"), 0, 0, 0.5f, 0.5f);
         Entity gBonusS = new Entity(gBonusE, world, 0f, 3f, 0.2f, "green_bonus");
-        gBonusS.setLT(hp);
+        gBonusS.setLT(100);
         gBonusS.getBody().setTransform(vec.x, vec.y, 0f);
         if (rand.nextInt(2) == 0)
             gBonusS.getBody().setAngularVelocity(rand.nextFloat() + 0.1f);
@@ -1418,10 +1443,10 @@ class Space implements Screen, GestureListener {
         stage.addActor(gBonusS);
         bonuses.addFirst(gBonusS);
     }
-    private void spawnTimeBonus (int hp, Vector2 vec) {
+    private void spawnTimeBonus(Vector2 vec) {
         AdvSprite gBonusE = new AdvSprite(game.atlas.createSprite("time"), 0, 0, 0.5f, 0.5f);
         Entity gBonusS = new Entity(gBonusE, world, 0f, 3f, 0.2f, "time_bonus");
-        gBonusS.setLT(hp);
+        gBonusS.setLT(100);
         gBonusS.getBody().setTransform(vec.x, vec.y, 0f);
         if (rand.nextInt(2) == 0)
             gBonusS.getBody().setAngularVelocity(rand.nextFloat() + 0.1f);
@@ -1438,10 +1463,10 @@ class Space implements Screen, GestureListener {
         stage.addActor(gBonusS);
         bonuses.addFirst(gBonusS);
     }
-    private void spawnDirBonus (int hp, Vector2 vec) {
+    private void spawnDirBonus(Vector2 vec) {
         AdvSprite gBonusE = new AdvSprite(game.atlas.createSprite("direction"), 0, 0, 0.5f, 0.5f);
         Entity gBonusS = new Entity(gBonusE, world, 0f, 3f, 0.2f, "direction_bonus");
-        gBonusS.setLT(hp);
+        gBonusS.setLT(100);
         gBonusS.getBody().setTransform(vec.x, vec.y, 0f);
         if (rand.nextInt(2) == 0)
             gBonusS.getBody().setAngularVelocity(rand.nextFloat() + 0.1f);
@@ -1618,7 +1643,7 @@ class Space implements Screen, GestureListener {
     }
     private void initLevelTrain3 () {
         for (int i = 0; i < 5; i++) {
-            spawnPlatelet(100, getRandSpawnLoc());
+            spawnPlatelet(getRandSpawnLoc());
             spawnRedCell(1000000, getRandSpawnLoc(), true);
         }
         timer = 60 * 360;
@@ -1628,7 +1653,7 @@ class Space implements Screen, GestureListener {
     private void initLevelTrain4 () {
         timer = 60 * 360;
         givenTime = 60 * 360;
-        spawnLymph(1000000, getRandSpawnLoc(), false);
+        spawnLymph(getRandSpawnLoc(), 6f, false);
         target = 5;
     }
     private void initLevels () {
@@ -1651,81 +1676,59 @@ class Space implements Screen, GestureListener {
                   break;
               }
           }
-        } else if (curLevel % 20 == 0) {
-            timer = 60 * 120 - (curLevel % 21) * 60;
-            givenTime = 60 * 120 - (curLevel % 21) * 60;
-            spawnVirus(50000, 0.1f, new Vector2(50f, 50f), curLevel / 20 + 19);
+        } else if (curLevel == 101) {
+            timer = 60 * 120;
+            givenTime = 60 * 120;
             for (int i = 0; i < 5; i++) {
-                spawnLymph(1000000, getRandSpawnLoc(), true);
-                spawnPlatelet(100, getRandSpawnLoc());
+                spawnPlatelet(getRandSpawnLoc());
+                spawnVirus(100, 1f - rand.nextFloat() / 2f, getRandSpawnLoc(), rand.nextInt(19) + 1);
+                spawnRedCell(100, getRandSpawnLoc(), false);
+            }
+            isVictory = true;
+        } else  if (curLevel % 10 == 0) {
+            timer = 60 * 120;
+            givenTime = 60 * 120;
+            spawnVirus(50000, 0.1f, new Vector2(50f, 50f), curLevel / 10 + 19);
+            for (int i = 0; i < 5; i++) {
+                spawnLymph(getRandSpawnLoc(), 5f - (curLevel / 100f), true);
+                spawnPlatelet(getRandSpawnLoc());
                 spawnRedCell(100, getRandSpawnLoc(), false);
             }
         } else {
             switch (curLevel % 4) {
                 case 1: {
-                    for (int i = 0; i < 5; i++) spawnVirus(150, 1f - rand.nextFloat() / 2f, getRandSpawnLoc(), rand.nextInt(19) + 1);
-                    int k = 20, h = 2;
-                    target = 5;
-                    timer = 60 * 60 - (curLevel % 21) * 60;
-                    givenTime = 60 * 60 - (curLevel % 21) * 60;
-                    while (curLevel - k > 0) {
-                        target += 2;
-                        k += 20;
-                        h += 2;
-                    }
-                    timer += h * 60;
-                    givenTime += h * 60;
-                    target += (curLevel % 21) / 4;
+                    for (int i = 0; i < 5; i++) spawnVirus(150 + curLevel, 1f - rand.nextFloat() / 2f, getRandSpawnLoc(), rand.nextInt(19) + 1);
+                    target = 5 + (curLevel % 21) / 4 + (curLevel / 20);
+                    timer = 60 * 60 + (curLevel / 10) * 60 + (curLevel < 21 ? 60 * (20 - curLevel) : 0);
+                    givenTime = 60 * 60 + (curLevel / 10) * 60 + (curLevel < 21 ? 60 * (20 - curLevel) : 0);
                     break;
                 }
                 case 2: {
-                    for (int i = 0; i < 5; i++) spawnVirus(150, 1f - rand.nextFloat() / 2f, getRandSpawnLoc(), rand.nextInt(19) + 1);
-                    int number = 1, k = 20;
-                    target = 10;
-                    while (curLevel - k > 0) {
-                        k += 20;
-                        target += 5;
-                    }
-                    target += (curLevel % 21) / 4;
-                    number += (curLevel % 21) / 4;
-                    for (int i = 0; i < number; i++) spawnLymph(1000000, getRandSpawnLoc(), false);
+                    for (int i = 0; i < 5; i++) spawnVirus(150 + curLevel, 1f - rand.nextFloat() / 2f, getRandSpawnLoc(), rand.nextInt(19) + 1);
+                    int number = 1;
+                    target = 5 + (curLevel % 21) / 4 + (curLevel / 20);
+                    number += (curLevel % 21) / 10;
+                    for (int i = 0; i < number; i++) spawnLymph(getRandSpawnLoc(), 3f + (curLevel / 100f), false);
                     break;
                 }
                 case 3: {
-                    int k = 20, h = 3;
-                    target = 5;
-                    timer = 60 * 70 - (curLevel % 21) * 60;
-                    givenTime = 60 * 70 - (curLevel % 21) * 60;
-                    while (curLevel - k > 0) {
-                        target += 2;
-                        k += 20;
-                        h += 3;
-                    }
-                    timer += h * 60;
-                    givenTime += h * 60;
-                    target += (curLevel % 21) / 4;
+                    target = 5 + (curLevel % 21) / 4 + (curLevel / 20);
+                    timer = 60 * 80 + (curLevel / 10) * 60 + (curLevel < 21 ? 60 * (20 - curLevel) : 0);
+                    givenTime = 60 * 80 + (curLevel / 10) * 60 + (curLevel < 21 ? 60 * (20 - curLevel) : 0);
                     for (int i = 0; i < 5; i++) {
-                        spawnPlatelet(100, getRandSpawnLoc());
+                        spawnPlatelet(getRandSpawnLoc());
                         spawnRedCell(100, getRandSpawnLoc(), true);
                     }
                     break;
                 }
                 case 0: {
-                    for (int i = 0; i < 5; i++) spawnVirus(150, 1f - rand.nextFloat() / 2f, getRandSpawnLoc(), rand.nextInt(19) + 1);
-                    int number = 6, k = 20, h = 2;
-                    target = 10;
-                    timer = 60 * 60;
-                    givenTime = 60 * 60;
-                    while (curLevel - k > 0) {
-                        k += 20;
-                        h += 2;
-                        target += 4;
-                    }
-                    timer += h * 60;
-                    givenTime += h * 60;
-                    target += (curLevel % 21) / 4;
-                    number -= (curLevel % 21) / 4 + curLevel / 60;
-                    for (int i = 0; i < number; i++) spawnLymph(1000000, getRandSpawnLoc(), false);
+                    int number = 6;
+                    target = 10 + (curLevel % 21) / 4 + (curLevel / 20);
+                    timer = 60 * 60 + (curLevel / 10) * 60;
+                    givenTime = 60 * 60 + (curLevel / 10) * 60 + (curLevel < 21 ? 60 * (20 - curLevel) : 0);
+                    number -= (curLevel % 21) / 4 + curLevel / 60 + (curLevel < 21 ? 60 * (20 - curLevel) : 0);
+                    for (int i = 0; i < number; i++) spawnLymph(getRandSpawnLoc(), 5f - (curLevel / 100f), false);
+                    for (int i = 0; i < 5; i++) spawnVirus(150 + curLevel, 1f - rand.nextFloat() / 2f, getRandSpawnLoc(), rand.nextInt(19) + 1);
                     break;
                 }
             }
@@ -1734,7 +1737,7 @@ class Space implements Screen, GestureListener {
 
     private void idleLevelTrain1 () {
         if (rand.nextInt(50) == 0) spawnRedCell(100, getRandSpawnLoc(), false);
-        if (rand.nextInt(75) == 0) spawnPlatelet(100, getRandSpawnLoc());
+        if (rand.nextInt(75) == 0) spawnPlatelet(getRandSpawnLoc());
         if (viruses.size() == 0) {
             isVictory = true;
             isGameOver = true;
@@ -1742,7 +1745,7 @@ class Space implements Screen, GestureListener {
     }
     private void idleLevelTrain2 () {
         if (rand.nextInt(100) == 0) spawnRedCell(100, getRandSpawnLoc(), false);
-        if (rand.nextInt(100) == 0) spawnPlatelet(100, getRandSpawnLoc());
+        if (rand.nextInt(100) == 0) spawnPlatelet(getRandSpawnLoc());
         if (rand.nextInt(150) == 0) spawnVirus(150, 1f - rand.nextFloat() / 2f, getRandSpawnLoc(), rand.nextInt(19) + 1);
         timer--;
         if (playerScore >= target) {
@@ -1755,7 +1758,7 @@ class Space implements Screen, GestureListener {
     }
     private void idleLevelTrain3 () {
         timer--;
-        if (rand.nextInt(100) == 0) spawnPlatelet(100, getRandSpawnLoc());
+        if (rand.nextInt(100) == 0) spawnPlatelet(getRandSpawnLoc());
         if (rand.nextInt(100) == 0) spawnRedCell(100, getRandSpawnLoc(), true);
         if (playerScore >= target) {
             isVictory = true;
@@ -1767,7 +1770,7 @@ class Space implements Screen, GestureListener {
     }
     private void idleLevelTrain4 () {
         if (rand.nextInt(100) == 0) spawnRedCell(100, getRandSpawnLoc(), false);
-        if (rand.nextInt(100) == 0) spawnPlatelet(100, getRandSpawnLoc());
+        if (rand.nextInt(100) == 0) spawnPlatelet(getRandSpawnLoc());
         if (rand.nextInt(75) == 0) spawnVirus(150, 1f - rand.nextFloat() / 2f, getRandSpawnLoc(), rand.nextInt(19) + 1);
         timer--;
         if (playerScore + lymphScore >= target) {
@@ -1779,11 +1782,24 @@ class Space implements Screen, GestureListener {
         }
     }
     private void idleLevels () {
-        if (curLevel % 20 == 0) {
+        if (curLevel == 101) {
             if (rand.nextInt(150) == 0) spawnRedCell(100, getRandSpawnLoc(), false);
-            if (rand.nextInt(150) == 0) spawnPlatelet(100, getRandSpawnLoc());
-            if (rand.nextInt(750) == 0) spawnGreenBonus(200, getRandSpawnLoc());
-            if (rand.nextInt(750) == 0) spawnTimeBonus(200, getRandSpawnLoc());
+            if (rand.nextInt(150) == 0) spawnPlatelet(getRandSpawnLoc());
+            if (rand.nextInt(150) == 0) spawnVirus(150 + curLevel, 1f - rand.nextFloat() / 2f, getRandSpawnLoc(), rand.nextInt(19) + 1);
+            if (rand.nextInt(500) == 0) spawnGreenBonus(getRandSpawnLoc());
+            if (rand.nextInt(500 + 25 * Technical.dirLevel) == 0) spawnDirBonus(getRandSpawnLoc());
+            if (rand.nextInt(250) == 0) spawnTimeBonus(getRandSpawnLoc());
+            timer--;
+            if (dirTimer > 0) dirTimer--;
+            if (timer < 0) {
+                isGameOver = true;
+            }
+        } else if (curLevel % 10 == 0) {
+            if (rand.nextInt(150) == 0) spawnRedCell(100, getRandSpawnLoc(), false);
+            if (rand.nextInt(150) == 0) spawnPlatelet(getRandSpawnLoc());
+            if (rand.nextInt(500) == 0) spawnGreenBonus(getRandSpawnLoc());
+            if (rand.nextInt(500 + 25 * Technical.dirLevel) == 0) spawnDirBonus(getRandSpawnLoc());
+            if (rand.nextInt(500 + 25 * Technical.timeLevel) == 0) spawnTimeBonus(getRandSpawnLoc());
             boolean isBossKilled = true;
             float bossX = 0, bossY = 0;
             for (Entity e : viruses) {
@@ -1801,7 +1817,7 @@ class Space implements Screen, GestureListener {
             int x = 4 - (rand.nextInt(9));
             bossX += x;
             bossY = rand.nextInt(2) == 0 ? bossY + (float)Math.sqrt(16 - x * x) : bossY - (float)Math.sqrt(16 - x * x);
-            if (rand.nextInt(30) == 0) spawnVirus(30, 0f, new Vector2(bossX, bossY), rand.nextInt(10) + 1);
+            if (rand.nextInt(100) == 0) spawnVirus(30, 0f, new Vector2(bossX, bossY), rand.nextInt(10) + 1);
             timer--;
             if (dirTimer > 0) dirTimer--;
             if (timer < 0) {
@@ -1811,11 +1827,11 @@ class Space implements Screen, GestureListener {
             switch (curLevel % 4) {
                 case 1: {
                     if (rand.nextInt(150) == 0) spawnRedCell(100, getRandSpawnLoc(), false);
-                    if (rand.nextInt(150) == 0) spawnPlatelet(100, getRandSpawnLoc());
-                    if (rand.nextInt(150) == 0) spawnVirus(150, 1f - rand.nextFloat() / 2f, getRandSpawnLoc(), rand.nextInt(19) + 1);
-                    if (rand.nextInt(750) == 0) spawnGreenBonus(200, getRandSpawnLoc());
-                    if (rand.nextInt(750) == 0) spawnTimeBonus(200, getRandSpawnLoc());
-                    if (rand.nextInt(750) == 0) spawnDirBonus(200, getRandSpawnLoc());
+                    if (rand.nextInt(150) == 0) spawnPlatelet(getRandSpawnLoc());
+                    if (rand.nextInt(150) == 0) spawnVirus(150 + curLevel, 1f - rand.nextFloat() / 2f, getRandSpawnLoc(), rand.nextInt(19) + 1);
+                    if (rand.nextInt(500) == 0) spawnGreenBonus(getRandSpawnLoc());
+                    if (rand.nextInt(500 + 25 * Technical.timeLevel) == 0) spawnTimeBonus(getRandSpawnLoc());
+                    if (rand.nextInt(500 + 25 * Technical.dirLevel) == 0) spawnDirBonus(getRandSpawnLoc());
                     timer--;
                     if (dirTimer > 0) dirTimer--;
                     if (playerScore >= target) {
@@ -1829,10 +1845,10 @@ class Space implements Screen, GestureListener {
                 }
                 case 2: {
                     if (rand.nextInt(150) == 0) spawnRedCell(100, getRandSpawnLoc(), false);
-                    if (rand.nextInt(150) == 0) spawnPlatelet(100, getRandSpawnLoc());
-                    if (rand.nextInt(100) == 0) spawnVirus(150, 1f - rand.nextFloat() / 2f, getRandSpawnLoc(), rand.nextInt(19) + 1);
-                    if (rand.nextInt(750) == 0) spawnGreenBonus(200, getRandSpawnLoc());
-                    if (rand.nextInt(750) == 0) spawnDirBonus(200, getRandSpawnLoc());
+                    if (rand.nextInt(150) == 0) spawnPlatelet(getRandSpawnLoc());
+                    if (rand.nextInt(100) == 0) spawnVirus(150 + curLevel, 1f - rand.nextFloat() / 2f, getRandSpawnLoc(), rand.nextInt(19) + 1);
+                    if (rand.nextInt(500) == 0) spawnGreenBonus(getRandSpawnLoc());
+                    if (rand.nextInt(500 + 25 * Technical.dirLevel) == 0) spawnDirBonus(getRandSpawnLoc());
                     if (dirTimer > 0) dirTimer--;
                     if (playerScore >= target) {
                         isGameOver = true;
@@ -1846,11 +1862,11 @@ class Space implements Screen, GestureListener {
                 case 3: {
                     timer--;
                     if (dirTimer > 0) dirTimer--;
-                    if (rand.nextInt(100) == 0) spawnPlatelet(100, getRandSpawnLoc());
+                    if (rand.nextInt(100) == 0) spawnPlatelet(getRandSpawnLoc());
                     if (rand.nextInt(100) == 0) spawnRedCell(100, getRandSpawnLoc(), true);
-                    if (rand.nextInt(750) == 0) spawnGreenBonus(200, getRandSpawnLoc());
-                    if (rand.nextInt(750) == 0) spawnTimeBonus(200, getRandSpawnLoc());
-                    if (rand.nextInt(750) == 0) spawnDirBonus(200, getRandSpawnLoc());
+                    if (rand.nextInt(500) == 0) spawnGreenBonus(getRandSpawnLoc());
+                    if (rand.nextInt(500 + 25 * Technical.timeLevel) == 0) spawnTimeBonus(getRandSpawnLoc());
+                    if (rand.nextInt(500 + 25 * Technical.dirLevel) == 0) spawnDirBonus(getRandSpawnLoc());
                     if (playerScore >= target) {
                         isVictory = true;
                         isGameOver = true;
@@ -1862,11 +1878,11 @@ class Space implements Screen, GestureListener {
                 }
                 case 0: {
                     if (rand.nextInt(150) == 0) spawnRedCell(100, getRandSpawnLoc(), false);
-                    if (rand.nextInt(150) == 0) spawnPlatelet(100, getRandSpawnLoc());
-                    if (rand.nextInt(100) == 0) spawnVirus(150, 1f - rand.nextFloat() / 2f, getRandSpawnLoc(), rand.nextInt(19) + 1);
-                    if (rand.nextInt(750) == 0) spawnGreenBonus(200, getRandSpawnLoc());
-                    if (rand.nextInt(750) == 0) spawnTimeBonus(200, getRandSpawnLoc());
-                    if (rand.nextInt(750) == 0) spawnDirBonus(200, getRandSpawnLoc());
+                    if (rand.nextInt(150) == 0) spawnPlatelet(getRandSpawnLoc());
+                    if (rand.nextInt(100) == 0) spawnVirus(150 + curLevel, 1f - rand.nextFloat() / 2f, getRandSpawnLoc(), rand.nextInt(19) + 1);
+                    if (rand.nextInt(500) == 0) spawnGreenBonus(getRandSpawnLoc());
+                    if (rand.nextInt(500 + 25 * Technical.timeLevel) == 0) spawnTimeBonus(getRandSpawnLoc());
+                    if (rand.nextInt(500 + 25 * Technical.dirLevel) == 0) spawnDirBonus(getRandSpawnLoc());
                     timer--;
                     if (dirTimer > 0) dirTimer--;
                     if (playerScore + lymphScore >= target) {
@@ -1905,7 +1921,7 @@ class Space implements Screen, GestureListener {
                     game.height - 0.075f*game.width + 0.5f*game.fonts.smallB.getHeight("A")
             );
         } else if (curLevel != 1) {
-            if (curLevel % 20 != 0) {
+            if (curLevel % 10 != 0) {
                 switch (curLevel % 4) {
                     case 1: {
                         game.fonts.smallB.draw(
@@ -2021,12 +2037,14 @@ class Space implements Screen, GestureListener {
     public boolean fling (float velocityX, float velocityY, int button) {
         if (!isGameOver && !isPaused) {
             if (Gdx.app.getType().equals(Application.ApplicationType.Android)) {
+                if (Technical.isSoundOn) game.sounds.swim.play();
                 player.applyForceToTheCentre(
                         0.5f * velocityX,
                         -(0.5f * velocityY),
                         true
                 );
             } else {
+                if (Technical.isSoundOn) game.sounds.swim.play();
                 player.applyForceToTheCentre(
                         0.75f * velocityX,
                         -(0.75f * velocityY),
