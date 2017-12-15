@@ -146,5 +146,17 @@ public class Entity extends AdvSprite {
     }
 
     public void updateLife () {}
-    public void updateLife (float x, float y) {}
+    public void updateLife (float x, float y) {
+        if (rand.nextInt(5) == 0) {
+            float velX = ((x - getPosition().x) * meter) * 2f;
+            float velY = ((y - getPosition().y) * meter) * 2f;
+            if (Math.abs(velX) < meter) if (velX > 0f) velX = meter; else velX = -meter;
+            if (Math.abs(velY) < meter) if (velY > 0f) velY = meter; else velY = -meter;
+            applyForceToTheCentre(
+                    velX,
+                    velY,
+                    true
+            );
+        }
+    }
 }

@@ -6,6 +6,7 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.math.RandomXS128;
+import com.badlogic.gdx.scenes.scene2d.Action;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
@@ -32,6 +33,10 @@ class Records implements Screen {
     private RandomXS128 rand;
     private LinkedList<AdvSprite> advSprites;
 
+    private AdvSprite achievement;
+    private AdvSprite rating;
+    private short iterator = 0;
+
     private int allScore = 0;
     private int allStars = 0;
 
@@ -45,7 +50,7 @@ class Records implements Screen {
     public void show() {
         game.sounds.mainTheme.setLooping(true);
         game.sounds.mainTheme.setVolume(0.1f);
-        if (Technical.isSoundOn) game.sounds.mainTheme.play();
+        if (Technical.isMusicOn) game.sounds.mainTheme.play();
 
         rand = new RandomXS128();
         stage = new Stage();
@@ -94,6 +99,32 @@ class Records implements Screen {
             }
         }
 
+        if (!achievement.hasActions()) {
+            if (iterator == 0) {
+                iterator = 1;
+                achievement.addAction(Actions.parallel(
+                        Actions.sizeBy(0.1f*game.width, 0.1f*game.width, 3f),
+                        Actions.moveBy(-0.05f*game.width, -0.05f*game.width, 3f)
+                ));
+                rating.addAction(Actions.parallel(
+                        Actions.sizeBy(0.1f*game.width, 0.1f*game.width, 3f),
+                        Actions.moveBy(-0.05f*game.width, -0.05f*game.width, 3f)
+                ));
+            } else {
+                achievement.addAction(Actions.parallel(
+                        Actions.sizeBy(-0.1f*game.width, -0.1f*game.width, 3f),
+                        Actions.moveBy(0.05f*game.width, 0.05f*game.width, 3f)
+                ));
+                rating.addAction(Actions.parallel(
+                        Actions.sizeBy(-0.1f*game.width, -0.1f*game.width, 3f),
+                        Actions.moveBy(0.05f*game.width, 0.05f*game.width, 3f)
+                ));
+                iterator = 0;
+            }
+        }
+        achievement.updateSprite();
+        rating.updateSprite();
+
         stage.getBatch().begin();
         drawText();
         stage.getBatch().end();
@@ -108,6 +139,7 @@ class Records implements Screen {
             game.prefs.putInteger("time_level", Technical.timeLevel);
             game.prefs.putInteger("direction_level", Technical.dirLevel);
             game.prefs.putBoolean("is_sound_on", Technical.isSoundOn);
+            game.prefs.putBoolean("is_music_on", Technical.isMusicOn);
             game.prefs.flush();
             dispose();
             Gdx.app.exit();
@@ -119,6 +151,7 @@ class Records implements Screen {
             game.prefs.putInteger("time_level", Technical.timeLevel);
             game.prefs.putInteger("direction_level", Technical.dirLevel);
             game.prefs.putBoolean("is_sound_on", Technical.isSoundOn);
+            game.prefs.putBoolean("is_music_on", Technical.isMusicOn);
             game.prefs.flush();
             dispose();
             Gdx.app.exit();
@@ -130,6 +163,7 @@ class Records implements Screen {
             game.prefs.putInteger("time_level", Technical.timeLevel);
             game.prefs.putInteger("direction_level", Technical.dirLevel);
             game.prefs.putBoolean("is_sound_on", Technical.isSoundOn);
+            game.prefs.putBoolean("is_music_on", Technical.isMusicOn);
             game.prefs.flush();
             dispose();
             Gdx.app.exit();
@@ -159,6 +193,24 @@ class Records implements Screen {
             }
         });
         stage.addActor(next.get());
+
+        achievement = new AdvSprite(
+                game.atlas.createSprite("achievement"),
+                0.3f*game.width,
+                0.6f*game.height,
+                0.4f*game.width,
+                0.4f*game.width
+        );
+        stage.addActor(achievement);
+
+        rating = new AdvSprite(
+                game.atlas.createSprite("rating"),
+                0.3f*game.width,
+                0.115f*game.height,
+                0.4f*game.width,
+                0.4f*game.width
+        );
+        stage.addActor(rating);
     }
 
     private void addPart () {
@@ -253,6 +305,7 @@ class Records implements Screen {
         game.prefs.putInteger("time_level", Technical.timeLevel);
         game.prefs.putInteger("direction_level", Technical.dirLevel);
         game.prefs.putBoolean("is_sound_on", Technical.isSoundOn);
+        game.prefs.putBoolean("is_music_on", Technical.isMusicOn);
         game.prefs.flush();
         if (game.sounds.mainTheme.isPlaying()) {
             game.sounds.mainTheme.pause();
@@ -262,7 +315,7 @@ class Records implements Screen {
 
     @Override
     public void resume() {
-        if (!game.sounds.mainTheme.isPlaying()) if (Technical.isSoundOn) game.sounds.mainTheme.play();
+        if (!game.sounds.mainTheme.isPlaying()) if (Technical.isMusicOn) game.sounds.mainTheme.play();
     }
 
     @Override
@@ -278,6 +331,7 @@ class Records implements Screen {
         game.prefs.putInteger("time_level", Technical.timeLevel);
         game.prefs.putInteger("direction_level", Technical.dirLevel);
         game.prefs.putBoolean("is_sound_on", Technical.isSoundOn);
+        game.prefs.putBoolean("is_music_on", Technical.isMusicOn);
         game.prefs.flush();
     }
 }

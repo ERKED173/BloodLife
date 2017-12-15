@@ -49,6 +49,7 @@ class Space implements Screen, GestureListener {
     private Spectator spec;
 
     private LinkedList<AdvSprite> partSpec;
+    private LinkedList<AdvSprite> partPlayer;
     private LinkedList<Entity> redCells;
     private LinkedList<Entity> platelets;
     private LinkedList<Entity> lymphocytes;
@@ -69,6 +70,10 @@ class Space implements Screen, GestureListener {
     private int moneyScore = 0;
 
     private int curLevel;
+
+    private AdvSprite timeIcon;
+    private AdvSprite directIcon;
+    private AdvSprite moneyIcon;
 
     private AdvSprite lymphSign;
     private AdvSprite lAndPSign;
@@ -110,6 +115,7 @@ class Space implements Screen, GestureListener {
         platelets = new LinkedList<>();
         bounds = new LinkedList<>();
         partSpec = new LinkedList<>();
+        partPlayer = new LinkedList<>();
         bonuses = new LinkedList<>();
     }
 
@@ -117,7 +123,7 @@ class Space implements Screen, GestureListener {
     public void show () {
         game.sounds.mainTheme.setLooping(true);
         game.sounds.mainTheme.setVolume(0.1f);
-        if (Technical.isSoundOn) game.sounds.mainTheme.play();
+        if (Technical.isMusicOn) game.sounds.mainTheme.play();
 
         Box2D.init();
         contactListenerInit();
@@ -128,6 +134,7 @@ class Space implements Screen, GestureListener {
 
         addBounds();
         for (int i = 0; i < rand.nextInt(10) + 20; i++) { spawnPart(); }
+        for (int i = 0; i < rand.nextInt(5) + 10; i++) { spawnPartPlayer(); }
 
         stage.addActor(spec);
         stage.addActor(player);
@@ -191,8 +198,8 @@ class Space implements Screen, GestureListener {
             if (!isPaused) {
                 drawText();
                 if (curLevel == 4) {
-                    lAndPSign.draw(stage.getBatch(), 1f);
                     virusSign1.draw(stage.getBatch(), 1f);
+                    lAndPSign.draw(stage.getBatch(), 1f);
                 } else if (curLevel == 3) {
                     redCellSign.draw(stage.getBatch(), 1f);
                 } else if (curLevel == 2) {
@@ -414,6 +421,7 @@ class Space implements Screen, GestureListener {
             game.prefs.putInteger("time_level", Technical.timeLevel);
             game.prefs.putInteger("direction_level", Technical.dirLevel);
             game.prefs.putBoolean("is_sound_on", Technical.isSoundOn);
+            game.prefs.putBoolean("is_music_on", Technical.isMusicOn);
             game.prefs.flush();
             dispose();
             Gdx.app.exit();
@@ -425,6 +433,7 @@ class Space implements Screen, GestureListener {
             game.prefs.putInteger("time_level", Technical.timeLevel);
             game.prefs.putInteger("direction_level", Technical.dirLevel);
             game.prefs.putBoolean("is_sound_on", Technical.isSoundOn);
+            game.prefs.putBoolean("is_music_on", Technical.isMusicOn);
             game.prefs.flush();
             dispose();
             Gdx.app.exit();
@@ -436,6 +445,7 @@ class Space implements Screen, GestureListener {
             game.prefs.putInteger("time_level", Technical.timeLevel);
             game.prefs.putInteger("direction_level", Technical.dirLevel);
             game.prefs.putBoolean("is_sound_on", Technical.isSoundOn);
+            game.prefs.putBoolean("is_music_on", Technical.isMusicOn);
             game.prefs.flush();
             dispose();
             Gdx.app.exit();
@@ -681,6 +691,15 @@ class Space implements Screen, GestureListener {
                                 moneyScore++;
                                 score += 10;
                                 if (Technical.isSoundOn) game.sounds.bonus.play(1f, 1.1f - rand.nextFloat() / 5f, 0f);
+                                moneyIcon.setPosition(0.5f*game.width, 0.5f*game.height);
+                                moneyIcon.addAction(Actions.alpha(1f));
+                                float x, y;
+                                x = 0.3f * game.width - rand.nextFloat()*0.6f * game.width;
+                                y = 0.1f * game.height + rand.nextFloat()*0.2f * game.height;
+                                moneyIcon.addAction(Actions.parallel(
+                                        Actions.moveBy(x, y, 1.5f),
+                                        Actions.alpha(0f, 1.5f)
+                                ));
                             }
                             break;
                         }
@@ -689,7 +708,16 @@ class Space implements Screen, GestureListener {
                             if (bonus.getLifeTime() == 0) {
                                 score += 10;
                                 if (Technical.isSoundOn) game.sounds.bonus.play(1f, 1.1f - rand.nextFloat() / 5f, 0f);
-                                timer += 120 + Technical.timeLevel * 60;
+                                timer += 120 + Technical.timeLevel * 90;
+                                timeIcon.setPosition(0.5f*game.width, 0.5f*game.height);
+                                timeIcon.addAction(Actions.alpha(1f));
+                                float x, y;
+                                x = 0.3f * game.width - rand.nextFloat()*0.6f * game.width;
+                                y = 0.1f * game.height + rand.nextFloat()*0.2f * game.height;
+                                timeIcon.addAction(Actions.parallel(
+                                        Actions.moveBy(x, y, 1.5f),
+                                        Actions.alpha(0f, 1.5f)
+                                ));
                             }
                             break;
                         }
@@ -698,7 +726,16 @@ class Space implements Screen, GestureListener {
                             if (bonus.getLifeTime() == 0) {
                                 score += 10;
                                 if (Technical.isSoundOn) game.sounds.bonus.play(1f, 1.1f - rand.nextFloat() / 5f, 0f);
-                                dirTimer += 120 + Technical.timeLevel * 60;
+                                dirTimer += 120 + Technical.timeLevel * 90;
+                                directIcon.setPosition(0.5f*game.width, 0.5f*game.height);
+                                directIcon.addAction(Actions.alpha(1f));
+                                float x, y;
+                                x = 0.3f * game.width - rand.nextFloat()*0.6f * game.width;
+                                y = 0.1f * game.height + rand.nextFloat()*0.2f * game.height;
+                                directIcon.addAction(Actions.parallel(
+                                        Actions.moveBy(x, y, 1.5f),
+                                        Actions.alpha(0f, 1.5f)
+                                ));
                             }
                             break;
                         }
@@ -713,6 +750,15 @@ class Space implements Screen, GestureListener {
                                 moneyScore++;
                                 score += 10;
                                 if (Technical.isSoundOn) game.sounds.bonus.play(1f, 1.1f - rand.nextFloat() / 5f, 0f);
+                                moneyIcon.setPosition(0.5f*game.width, 0.5f*game.height);
+                                moneyIcon.addAction(Actions.alpha(1f));
+                                float x, y;
+                                x = 0.3f * game.width - rand.nextFloat()*0.6f * game.width;
+                                y = 0.1f * game.height + rand.nextFloat()*0.2f * game.height;
+                                moneyIcon.addAction(Actions.parallel(
+                                        Actions.moveBy(x, y, 1.5f),
+                                        Actions.alpha(0f, 1.5f)
+                                ));
                             }
                             break;
                         }
@@ -721,7 +767,16 @@ class Space implements Screen, GestureListener {
                             if (bonus.getLifeTime() == 0) {
                                 score += 10;
                                 if (Technical.isSoundOn) game.sounds.bonus.play(1f, 1.1f - rand.nextFloat() / 5f, 0f);
-                                timer += 120 + Technical.timeLevel * 60;
+                                timer += 120 + Technical.timeLevel * 90;
+                                timeIcon.setPosition(0.5f*game.width, 0.5f*game.height);
+                                timeIcon.addAction(Actions.alpha(1f));
+                                float x, y;
+                                x = 0.3f * game.width - rand.nextFloat()*0.6f * game.width;
+                                y = 0.1f * game.height + rand.nextFloat()*0.2f * game.height;
+                                timeIcon.addAction(Actions.parallel(
+                                        Actions.moveBy(x, y, 1.5f),
+                                        Actions.alpha(0f, 1.5f)
+                                ));
                             }
                             break;
                         }
@@ -730,7 +785,16 @@ class Space implements Screen, GestureListener {
                             if (bonus.getLifeTime() == 0) {
                                 score += 10;
                                 if (Technical.isSoundOn) game.sounds.bonus.play(1f, 1.1f - rand.nextFloat() / 5f, 0f);
-                                dirTimer += 120 + Technical.timeLevel * 60;
+                                dirTimer += 120 + Technical.timeLevel * 90;
+                                directIcon.setPosition(0.5f*game.width, 0.5f*game.height);
+                                directIcon.addAction(Actions.alpha(1f));
+                                float x, y;
+                                x = 0.3f * game.width - rand.nextFloat()*0.6f * game.width;
+                                y = 0.1f * game.height + rand.nextFloat()*0.2f * game.height;
+                                directIcon.addAction(Actions.parallel(
+                                        Actions.moveBy(x, y, 1.5f),
+                                        Actions.alpha(0f, 1.5f)
+                                ));
                             }
                             break;
                         }
@@ -867,8 +931,17 @@ class Space implements Screen, GestureListener {
                 }
             }
         }
+        timeIcon = new AdvSprite(game.atlas.createSprite("time_icon"), 0f, 0f, 0.1f * game.width, 0.1f * game.width);
+        timeIcon.addAction(Actions.alpha(0f));
+        moneyIcon = new AdvSprite(game.atlas.createSprite("money_icon"), 0f, 0f, 0.1f * game.width, 0.1f * game.width);
+        moneyIcon.addAction(Actions.alpha(0f));
+        directIcon = new AdvSprite(game.atlas.createSprite("direction_icon"), 0f, 0f, 0.1f * game.width, 0.1f * game.width);
+        directIcon.addAction(Actions.alpha(0f));
         stage.addActor(pointer);
         stage.addActor(timeLine);
+        stage.addActor(timeIcon);
+        stage.addActor(moneyIcon);
+        stage.addActor(directIcon);
     }
     private void UIUpdate () {
         if (curLevel < 5) {
@@ -1076,6 +1149,9 @@ class Space implements Screen, GestureListener {
             }
             timeLine.updateSprite();
         }
+        timeIcon.updateSprite();
+        moneyIcon.updateSprite();
+        directIcon.updateSprite();
     }
     private void pointerUpdateVirus () {
         pointer.setPosition(
@@ -1291,6 +1367,51 @@ class Space implements Screen, GestureListener {
                 Actions.rotateBy(rand.nextInt(2) == 0 ? 360 : -360, lifeTime)
         ));
     }
+    private void spawnPartPlayer () {
+        float spawnX = meter*spec.get().position.x;
+        float spawnY = meter*spec.get().position.y;
+        float length = rand.nextInt((int)(0.01f*meter*spec.get().viewportWidth)) + 0.01f*meter*spec.get().viewportWidth;
+        AdvSprite particle = new AdvSprite(
+                game.atlas.createSprite("particle"),
+                spawnX,
+                spawnY,
+                length,
+                length);
+        particle.getSprite().setAlpha(0f);
+        float lifeTime = 1 + rand.nextFloat();
+        particle.addAction(new ParallelAction(
+                new SequenceAction(
+                        Actions.sizeBy(10f, 10f, 0.5f * lifeTime),
+                        Actions.sizeBy(-10f, -10f, 0.5f * lifeTime)
+                ),
+                new SequenceAction(
+                        Actions.alpha(1f, 0.5f * lifeTime),
+                        Actions.alpha(0f, 0.5f * lifeTime)
+                ),
+                Actions.rotateBy(rand.nextInt(2) == 0 ? 360 : -360, lifeTime)
+        ));
+        particle.setColor(new Color((rand.nextInt(30) + 55)/255f, (rand.nextInt(30) + 155)/255f, (rand.nextInt(30) + 195)/255f, 1f));
+        stage.addActor(particle);
+        partPlayer.addFirst(particle);
+    }
+    private void changePartPlayer (AdvSprite e) {
+        e.addAction(Actions.alpha(0f));
+        float x = meter*spec.get().position.x;
+        float y = meter*spec.get().position.y;
+        e.setPosition(x, y);
+        float lifeTime = 1 + rand.nextFloat();
+        e.addAction(new ParallelAction(
+                new SequenceAction(
+                        Actions.sizeBy(10f, 10f, 0.5f * lifeTime),
+                        Actions.sizeBy(-10f, -10f, 0.5f * lifeTime)
+                ),
+                new SequenceAction(
+                        Actions.alpha(1f, 0.5f * lifeTime),
+                        Actions.alpha(0f, 0.5f * lifeTime)
+                ),
+                Actions.rotateBy(rand.nextInt(2) == 0 ? 360 : -360, lifeTime)
+        ));
+    }
     private void addBounds () {
         for (int i = 0; i < 20; i++) {
             AdvSprite boundSpr = new AdvSprite(game.atlas.createSprite("bound_left"), -15f, -15f + i * 5f, 5f, 5f);
@@ -1345,7 +1466,7 @@ class Space implements Screen, GestureListener {
         stage.addActor(redCell);
         redCells.addFirst(redCell);
     }
-    private void spawnPlatelet(Vector2 vec) {
+    private void spawnPlatelet (Vector2 vec) {
         AdvSprite platEnt = new AdvSprite(game.atlas.createSprite("yellow"), 0, 0, 0.5f, 0.5f);
         Entity platSub = new Entity(platEnt, world, 0f, 3f, 0.2f, "platelet");
         Platelet platelet = new Platelet(platSub, 100);
@@ -1400,7 +1521,7 @@ class Space implements Screen, GestureListener {
         stage.addActor(virus);
         viruses.addFirst(virus);
     }
-    private void spawnLymph(Vector2 vec, float speed, boolean isSick) {
+    private void spawnLymph (Vector2 vec, float speed, boolean isSick) {
         AdvSprite lymEntity = new AdvSprite(game.atlas.createSprite("lymphocyte", rand.nextInt(7) + 1), 0, 0, 1f, 1f);
         Entity lymSubject = new Entity(lymEntity, world, 0f, 8f, 0.2f, "lymphocyte");
         Lymphocyte lymphocyte = new Lymphocyte(lymSubject, 1000000, speed);
@@ -1423,7 +1544,7 @@ class Space implements Screen, GestureListener {
         stage.addActor(lymphocyte);
         lymphocytes.addFirst(lymphocyte);
     }
-    private void spawnGreenBonus(Vector2 vec) {
+    private void spawnGreenBonus (Vector2 vec) {
         AdvSprite gBonusE = new AdvSprite(game.atlas.createSprite("green_card"), 0, 0, 0.5f, 0.5f);
         Entity gBonusS = new Entity(gBonusE, world, 0f, 3f, 0.2f, "green_bonus");
         gBonusS.setLT(100);
@@ -1443,7 +1564,7 @@ class Space implements Screen, GestureListener {
         stage.addActor(gBonusS);
         bonuses.addFirst(gBonusS);
     }
-    private void spawnTimeBonus(Vector2 vec) {
+    private void spawnTimeBonus (Vector2 vec) {
         AdvSprite gBonusE = new AdvSprite(game.atlas.createSprite("time"), 0, 0, 0.5f, 0.5f);
         Entity gBonusS = new Entity(gBonusE, world, 0f, 3f, 0.2f, "time_bonus");
         gBonusS.setLT(100);
@@ -1463,7 +1584,7 @@ class Space implements Screen, GestureListener {
         stage.addActor(gBonusS);
         bonuses.addFirst(gBonusS);
     }
-    private void spawnDirBonus(Vector2 vec) {
+    private void spawnDirBonus (Vector2 vec) {
         AdvSprite gBonusE = new AdvSprite(game.atlas.createSprite("direction"), 0, 0, 0.5f, 0.5f);
         Entity gBonusS = new Entity(gBonusE, world, 0f, 3f, 0.2f, "direction_bonus");
         gBonusS.setLT(100);
@@ -1512,6 +1633,7 @@ class Space implements Screen, GestureListener {
             idleLevels();
         }
         player.updateSprite(spec.get());
+        playerSearch();
         lymphSearch();
         Iterator<Entity> vI = viruses.iterator();
         while (vI.hasNext()) {
@@ -1603,6 +1725,12 @@ class Space implements Screen, GestureListener {
                 changePart(partSpec.get(i));
             }
         }
+        for (int i = 0; i < partPlayer.size(); i++) {
+            partPlayer.get(i).updateSprite(spec.get());
+            if (!partPlayer.get(i).hasActions()) {
+                changePartPlayer(partPlayer.get(i));
+            }
+        }
         for (int i = 0; i < bounds.size(); i++) {
             bounds.get(i).updateSprite(spec.get());
         }
@@ -1631,6 +1759,27 @@ class Space implements Screen, GestureListener {
                 lymph.updateLife(x, y);
             }
         }
+    }
+    private void playerSearch () {
+        float x = player.getPosition().x;
+        float y = player.getPosition().y;
+        double minDist = 1000000;
+        Iterator<Entity> virusI = viruses.iterator();
+        while (virusI.hasNext()) {
+            Entity virus = virusI.next();
+            if (virus.isAlive()) {
+                float tempX = (virus.getPosition().x - player.getPosition().x);
+                float tempY = (virus.getPosition().y - player.getPosition().y);
+                double distance = Math.sqrt((double) (tempX * tempX + tempY * tempY));
+                if (distance < minDist) {
+                    minDist = distance;
+                    x = virus.getPosition().x;
+                    y = virus.getPosition().y;
+                }
+            }
+        }
+        if (minDist * meter < 2f * meter)
+            player.updateLife(x, y);
     }
 
     private void initLevelTrain1 () {
@@ -1727,7 +1876,7 @@ class Space implements Screen, GestureListener {
                     timer = 60 * 60 + (curLevel / 10) * 60;
                     givenTime = 60 * 60 + (curLevel / 10) * 60 + (curLevel < 21 ? 60 * (20 - curLevel) : 0);
                     number -= (curLevel % 21) / 4 + curLevel / 60 + (curLevel < 21 ? 60 * (20 - curLevel) : 0);
-                    for (int i = 0; i < number; i++) spawnLymph(getRandSpawnLoc(), 5f - (curLevel / 100f), false);
+                    for (int i = 0; i < number; i++) spawnLymph(getRandSpawnLoc(), 4f - (curLevel / 100f), false);
                     for (int i = 0; i < 5; i++) spawnVirus(150 + curLevel, 1f - rand.nextFloat() / 2f, getRandSpawnLoc(), rand.nextInt(19) + 1);
                     break;
                 }
@@ -1990,6 +2139,7 @@ class Space implements Screen, GestureListener {
         game.prefs.putInteger("time_level", Technical.timeLevel);
         game.prefs.putInteger("direction_level", Technical.dirLevel);
         game.prefs.putBoolean("is_sound_on", Technical.isSoundOn);
+        game.prefs.putBoolean("is_music_on", Technical.isMusicOn);
         game.prefs.flush();
         if (game.sounds.mainTheme.isPlaying()) {
             game.sounds.mainTheme.pause();
@@ -1999,7 +2149,7 @@ class Space implements Screen, GestureListener {
 
     @Override
     public void resume () {
-        if (!game.sounds.mainTheme.isPlaying()) if (Technical.isSoundOn) game.sounds.mainTheme.play();
+        if (!game.sounds.mainTheme.isPlaying()) if (Technical.isMusicOn) game.sounds.mainTheme.play();
     }
 
     @Override
@@ -2015,6 +2165,7 @@ class Space implements Screen, GestureListener {
         game.prefs.putInteger("time_level", Technical.timeLevel);
         game.prefs.putInteger("direction_level", Technical.dirLevel);
         game.prefs.putBoolean("is_sound_on", Technical.isSoundOn);
+        game.prefs.putBoolean("is_music_on", Technical.isMusicOn);
         game.prefs.flush();
     }
 

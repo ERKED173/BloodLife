@@ -17,6 +17,7 @@ public class Technical implements Screen {
     public static final float METER = Gdx.graphics.getWidth() / 8f;
 
     static boolean isSoundOn = true;
+    static boolean isMusicOn = true;
     static int maxLevel = 1;
     static int curSkin = 1;
     static int money = 0;
@@ -38,11 +39,11 @@ public class Technical implements Screen {
 
         maxLevel = game.prefs.getInteger("max_level", 1);
         isSoundOn = game.prefs.getBoolean("is_sound_on", true);
+        isMusicOn = game.prefs.getBoolean("is_music_on", true);
         curSkin = game.prefs.getInteger("current_skin", 1);
         money = game.prefs.getInteger("money", 0);
         timeLevel = game.prefs.getInteger("time_level", 0);
         dirLevel = game.prefs.getInteger("direction_level", 0);
-        // TODO: check for available skins
 
         game.width = Gdx.graphics.getWidth();
         game.height = Gdx.graphics.getHeight();
@@ -54,7 +55,7 @@ public class Technical implements Screen {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         timer += delta;
-        if (timer > 4f) {
+        if (timer > 1f) {
             game.setScreen(new Menu(game, false));
             dispose();
         }

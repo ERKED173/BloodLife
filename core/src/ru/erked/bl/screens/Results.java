@@ -60,7 +60,7 @@ class Results implements Screen {
     public void show() {
         game.sounds.mainTheme.setLooping(true);
         game.sounds.mainTheme.setVolume(0.1f);
-        if (Technical.isSoundOn) game.sounds.mainTheme.play();
+        if (Technical.isMusicOn) game.sounds.mainTheme.play();
 
         oldStars = game.prefs.getInteger("level_star_" + curLevel, 0);
         prevScore = game.prefs.getInteger("level_score_" + curLevel, 0);
@@ -178,6 +178,7 @@ class Results implements Screen {
             game.prefs.putInteger("time_level", Technical.timeLevel);
             game.prefs.putInteger("direction_level", Technical.dirLevel);
             game.prefs.putBoolean("is_sound_on", Technical.isSoundOn);
+            game.prefs.putBoolean("is_music_on", Technical.isMusicOn);
             game.prefs.flush();
             dispose();
             Gdx.app.exit();
@@ -189,6 +190,7 @@ class Results implements Screen {
             game.prefs.putInteger("time_level", Technical.timeLevel);
             game.prefs.putInteger("direction_level", Technical.dirLevel);
             game.prefs.putBoolean("is_sound_on", Technical.isSoundOn);
+            game.prefs.putBoolean("is_music_on", Technical.isMusicOn);
             game.prefs.flush();
             dispose();
             Gdx.app.exit();
@@ -200,6 +202,7 @@ class Results implements Screen {
             game.prefs.putInteger("time_level", Technical.timeLevel);
             game.prefs.putInteger("direction_level", Technical.dirLevel);
             game.prefs.putBoolean("is_sound_on", Technical.isSoundOn);
+            game.prefs.putBoolean("is_music_on", Technical.isMusicOn);
             game.prefs.flush();
             dispose();
             Gdx.app.exit();
@@ -351,6 +354,7 @@ class Results implements Screen {
         game.prefs.putInteger("time_level", Technical.timeLevel);
         game.prefs.putInteger("direction_level", Technical.dirLevel);
         game.prefs.putBoolean("is_sound_on", Technical.isSoundOn);
+        game.prefs.putBoolean("is_music_on", Technical.isMusicOn);
         game.prefs.flush();
         if (game.sounds.mainTheme.isPlaying()) {
             game.sounds.mainTheme.pause();
@@ -360,7 +364,7 @@ class Results implements Screen {
 
     @Override
     public void resume() {
-        if (!game.sounds.mainTheme.isPlaying()) if (Technical.isSoundOn) game.sounds.mainTheme.play();
+        if (!game.sounds.mainTheme.isPlaying()) if (Technical.isMusicOn) game.sounds.mainTheme.play();
     }
 
     @Override
@@ -376,6 +380,7 @@ class Results implements Screen {
         game.prefs.putInteger("time_level", Technical.timeLevel);
         game.prefs.putInteger("direction_level", Technical.dirLevel);
         game.prefs.putBoolean("is_sound_on", Technical.isSoundOn);
+        game.prefs.putBoolean("is_music_on", Technical.isMusicOn);
         game.prefs.flush();
     }
 }

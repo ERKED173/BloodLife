@@ -16,8 +16,8 @@ public class DesktopLauncher {
 		settings.maxHeight = 2048;
 		TexturePacker.process(
 				settings,
-				"C:/Projects/Java/BloodLife/resource",
-				"C:/Projects/Java/BloodLife/source/android/assets/textures",
+				"C:/Projects/Java/BloodLife3/resources",
+				"C:/Projects/Java/BloodLife3/sources/android/assets/textures",
 				"texture");
  		/**/
 

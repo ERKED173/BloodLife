@@ -17,6 +17,7 @@ public class AndroidLauncher extends AndroidApplication {
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 		int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_STABLE;
 		getWindow().getDecorView().setSystemUiVisibility(uiOptions);
+
 		int lang;
 		switch (getString(R.string.language)){
 			case "EN":{

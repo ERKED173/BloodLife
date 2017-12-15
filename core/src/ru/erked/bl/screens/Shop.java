@@ -55,7 +55,7 @@ class Shop implements Screen {
     public void show() {
         game.sounds.mainTheme.setLooping(true);
         game.sounds.mainTheme.setVolume(0.1f);
-        if (Technical.isSoundOn) game.sounds.mainTheme.play();
+        if (Technical.isMusicOn) game.sounds.mainTheme.play();
 
         rand = new RandomXS128();
         stage = new Stage();
@@ -233,11 +233,11 @@ class Shop implements Screen {
         }
 
         if (Technical.timeLevel < 5)
-            bonusBuy[0].get().setText(((Technical.timeLevel + 1) * 10) + "         ");
+            bonusBuy[0].get().setText(((Technical.timeLevel) * 5 + 25) + "         ");
         else
             bonusBuy[0].get().setText("---");
         if (Technical.dirLevel < 5)
-            bonusBuy[1].get().setText(((Technical.dirLevel + 1) * 10) + "         ");
+            bonusBuy[1].get().setText(((Technical.dirLevel) * 5 + 25) + "         ");
         else
             bonusBuy[1].get().setText("---");
 
@@ -255,6 +255,7 @@ class Shop implements Screen {
             game.prefs.putInteger("time_level", Technical.timeLevel);
             game.prefs.putInteger("direction_level", Technical.dirLevel);
             game.prefs.putBoolean("is_sound_on", Technical.isSoundOn);
+            game.prefs.putBoolean("is_music_on", Technical.isMusicOn);
             game.prefs.flush();
             dispose();
             Gdx.app.exit();
@@ -266,6 +267,7 @@ class Shop implements Screen {
             game.prefs.putInteger("time_level", Technical.timeLevel);
             game.prefs.putInteger("direction_level", Technical.dirLevel);
             game.prefs.putBoolean("is_sound_on", Technical.isSoundOn);
+            game.prefs.putBoolean("is_music_on", Technical.isMusicOn);
             game.prefs.flush();
             dispose();
             Gdx.app.exit();
@@ -277,6 +279,7 @@ class Shop implements Screen {
             game.prefs.putInteger("time_level", Technical.timeLevel);
             game.prefs.putInteger("direction_level", Technical.dirLevel);
             game.prefs.putBoolean("is_sound_on", Technical.isSoundOn);
+            game.prefs.putBoolean("is_music_on", Technical.isMusicOn);
             game.prefs.flush();
             dispose();
             Gdx.app.exit();
@@ -414,9 +417,9 @@ class Shop implements Screen {
             @Override
             public void clicked (InputEvent event, float x, float y) {
                 if (!obf.isActive()) {
-                    if (Technical.timeLevel < 5 && Technical.money >= (Technical.timeLevel + 1) * 10) {
+                    if (Technical.timeLevel < 5 && Technical.money >= (Technical.timeLevel) * 5 + 25) {
                         if (Technical.isSoundOn) game.sounds.cash.play();
-                        Technical.money -= (Technical.timeLevel + 1) * 10;
+                        Technical.money -= (Technical.timeLevel) * 5 + 25;
                         Technical.timeLevel++;
                     }
                     bonusBuy[0].get().setChecked(false);
@@ -440,9 +443,9 @@ class Shop implements Screen {
             @Override
             public void clicked (InputEvent event, float x, float y) {
                 if (!obf.isActive()) {
-                    if (Technical.dirLevel < 5 && Technical.money >= (Technical.dirLevel + 1) * 10) {
+                    if (Technical.dirLevel < 5 && Technical.money >= (Technical.dirLevel) * 5 + 25) {
                         if (Technical.isSoundOn) game.sounds.cash.play();
-                        Technical.money -= (Technical.dirLevel + 1) * 10;
+                        Technical.money -= (Technical.dirLevel) * 5 + 25;
                         Technical.dirLevel++;
                     }
                     bonusBuy[1].get().setChecked(false);
@@ -552,6 +555,7 @@ class Shop implements Screen {
         game.prefs.putInteger("time_level", Technical.timeLevel);
         game.prefs.putInteger("direction_level", Technical.dirLevel);
         game.prefs.putBoolean("is_sound_on", Technical.isSoundOn);
+        game.prefs.putBoolean("is_music_on", Technical.isMusicOn);
         game.prefs.flush();
         if (game.sounds.mainTheme.isPlaying()) {
             game.sounds.mainTheme.pause();
@@ -561,7 +565,7 @@ class Shop implements Screen {
 
     @Override
     public void resume() {
-        if (!game.sounds.mainTheme.isPlaying()) if (Technical.isSoundOn) game.sounds.mainTheme.play();
+        if (!game.sounds.mainTheme.isPlaying()) if (Technical.isMusicOn) game.sounds.mainTheme.play();
     }
 
     @Override
@@ -577,6 +581,7 @@ class Shop implements Screen {
         game.prefs.putInteger("time_level", Technical.timeLevel);
         game.prefs.putInteger("direction_level", Technical.dirLevel);
         game.prefs.putBoolean("is_sound_on", Technical.isSoundOn);
+        game.prefs.putBoolean("is_music_on", Technical.isMusicOn);
         game.prefs.flush();
     }
 }
